@@ -1,6 +1,8 @@
 #!/usr/bin/python3.7
 import collections
 
+__all__ = ["Planet"]
+
 """
 /starbox/celestial.py
 
@@ -21,10 +23,14 @@ class Planet:
     bodyType = "Planet"
 
     def __init__(self, name, parent, composition="Rock", ruler=None):
-        moons = [] # Natural bodies orbiting this body; Typically another planet
-        satellites = [] # Synthetic structures orbiting this body; Typically a station
-        sites = [] # Locations on the surface of the world, synthetic or geographical
-        nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
+        self.name = name
+        self.parent = parent
+        self.composition = composition
+        self.ruler = ruler
+        self.moons = [] # Natural bodies orbiting this body; Typically another planet
+        self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+        self.sites = [] # Locations on the surface of the world, synthetic or geographical
+        self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
 
     def system():
         return self.parent.system()
