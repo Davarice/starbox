@@ -53,12 +53,25 @@ class Planet:
 
     def __init__(self, name, parent=None, # Identity information
                  composition="rock", # Physical information
-                 ruler=None, space=None): # Social information
+                 ruler=None, space=None, dayLength=24): # Social information
         self.name = name
         self.parent = parent
         self.composition = composition
         self.moons = [] # Natural bodies orbiting this body; Typically another planet
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+
+        # Physical characteristics
+        self.mass = None # Mass of the planet
+        self.radius = None # Distance from the center to the surface
+        self.Gravity = 1 # Strength of surface gravity, relative to Earth
+
+        # Positional characteristics
+        self.posPhi = None # Position of the planet relative to its parent
+        self.posRho = None # Distance from the planet to its parent body
+
+        # Temporal characteristics
+        self.periodRotation = dayLength # Number of hours taken to rotate
+        self.periodOrbital = None # Number of hours in a year
 
         self.ruler = ruler
         self.sites = [] # Locations on the surface of the world, synthetic or geographical

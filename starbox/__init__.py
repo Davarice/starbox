@@ -18,12 +18,12 @@ def genSol():
     p = Planet("Earth", sol)
     m = Planet("Luna", p)
     p = Planet("Mars", sol)
-    m = Belt("Inner Belt", sol)
+    m = Belt("Inner Belt", sol, composition={"dust":50.0,"rock":50.0})
     p = Planet("Jupiter", sol)
     p.composition = "Gas"
     p = Planet("Saturn", sol)
     p.composition = "Gas"
-    m = Belt("Rings of Saturn", p)
+    m = Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
     p = Planet("Caelus", sol)
     p.composition = "Gas"
     p = Planet("Neptune", sol)
