@@ -19,3 +19,7 @@ These objects integrate portions of AstroPy for their attributes, allowing for e
 A set of functions to manipulate elements of the game board such as creation of celestial bodies, as well as changing their positions to correspond with the passage of game time
 
 
+## Minor / Future:
+
+### WebApp:
+A CLI tool to navigate the game board and render simplistic star system maps

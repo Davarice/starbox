@@ -1,7 +1,12 @@
 import sys
 import pickle
 import json
+
 import collections
+import astropy
+from astropy import constants as c
+from astropy import units as u
+
 from .celestial import *
 
 #__all__ = ["genSol"]

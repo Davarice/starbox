@@ -1,6 +1,7 @@
-#!/usr/bin/python3.7
 import collections
-from scipy import constants
+import astropy
+from astropy import constants as c
+from astropy import units as u
 
 #__all__ = ["Planet","Star","System"]
 
@@ -174,6 +175,24 @@ class Star:
         except AttributeError:
             return None
 
+    def subsList(self):
+        oput = "{}: {}".format(self.bodySubtype, self.name)
+        n = 0
+        try:
+            oput = oput + "\nParent: [{}] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
+            n += 1
+        except AttributeError:
+            pass
+        oput = oput + "\n    Orbitals:"
+        for subloc in self.orbitals:
+            oput = oput + "\n   :[\033[96m{}\033[0m]: {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            n += 1
+        oput = oput + "\n    Satellites:"
+        for subloc in self.satellites:
+            oput = oput + "\n   :[{}]: {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            n += 1
+        return oput
+
     def subAssign(self, childNew):
         try:
             self.orbitals.append(childNew)
@@ -218,6 +237,16 @@ class System:
     def system(self):
         return self
 
+    def subsList(self):
+        oput = "{}: {}".format(self.bodySubtype, self.name)
+        oput = oput + "\n    Core:"
+        for subloc in self.heads:
+            oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
+        oput = oput + "\n    Orbitals:"
+        for subloc in self.bodies:
+            oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
+        return oput
+
     def subAssign(self, childNew):
         try:
             if childNew.bodyRank > self.bodyRank:
@@ -238,6 +267,7 @@ class Belt:
     """
     Belt: A region of debris in orbit around a body, forming a ring
     """
+    bodyType = "Belt"
 
     def __init__(self, name, parent=None, # Identity information
                  posRho=0, composition={"rock":100.0}, # Physical information
@@ -257,11 +287,11 @@ class Belt:
             pass
 
         if self.parent.bodyType == "Star":
-            self.bodyType = "Belt"
+            self.bodySubtype = "Belt"
         elif self.parent.bodyType == "Planet":
-            self.bodyType = "Ring"
+            self.bodySubtype = "Ring"
         else:
-            self.bodyType = "Cloud"
+            self.bodySubtype = "Cloud"
 
     def system(self):
         try:
