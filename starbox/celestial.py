@@ -25,7 +25,10 @@ bodyRank: Hierarchy of mass of celestials
 
 # Lookup tables for scale conversions
 mInUnit = {"mm":0.001,"m":1,"km":1000}
-gInUnit = {"mg":0.001,"g":1,"kg":1000}
+gInUnit = {"mg":0.001,"g":1,"kg":1000,
+           "massEarth":5.9722e27,
+           "massJovian":1.89813e30,
+           "massSolar":1.98847e33}
 
 def convertMass(q1, u1, u2):
     if u1 == u2:
@@ -62,6 +65,7 @@ class Planet:
 
         # Physical characteristics
         self.mass = None # Mass of the planet
+        self.massUnit = "massEarth"
         self.radius = None # Distance from the center to the surface
         self.Gravity = 1 # Strength of surface gravity, relative to Earth
 
@@ -120,11 +124,12 @@ class Star:
     bodyType = "Star"
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1.0, stellarClass="D", subtype="Main Sequence", # Physical information
+                 mass=1, stellarClass="D", subtype="Main Sequence", # Physical information
                  ruler=None, space=None): # Social information
         self.name = name # STR: Common designation
         self.parent = parent # OBJ: Object around which this body orbits
-        self.mass = mass # DEC: Mass of the star, given in Solar Masses
+        self.mass = mass # FLOAT: Mass of the star, given in Solar Masses
+        self.massUnit = "massSolar"
         self.stellarClass = stellarClass
         self.stellarSubtype = subtype
         self.ruler = ruler
@@ -207,6 +212,9 @@ class System:
     def __dict__(self):
         return {"heads" : self.heads, "bodies" : self.bodies}
 
+## ## ## ## ## ## ## ##
+## ## MINOR TYPES ## ##
+## ## ## ## ## ## ## ##
 
 class Belt:
     """
@@ -268,6 +276,56 @@ class Belt:
             for moon in self.orbitals:
                 oput = oput + "\n -- " + moon.__str__()
         return oput
+
+
+class Minor:
+    """
+    Minor: An object too small to be gravitationally spherical
+    Asteroids, meteors, comets, etc.
+    """
+
+    def __init__(self, name, parent=None, # Identity information
+                 composition="rock", # Physical information
+                 ruler=None, space=None): # Social information
+        self.name = name
+        self.parent = parent
+        self.composition = composition
+        self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+
+        # Physical characteristics
+        self.mass = None # Mass of the planet
+        self.massUnit = "kg"
+        self.radius = None # Distance from the center to the surface
+
+        # Positional characteristics
+        self.posPhi = None # Position of the planet relative to its parent
+        self.posRho = None # Distance from the planet to its parent body
+
+        self.ruler = ruler
+        self.sites = [] # Locations on the surface of the world, synthetic or geographical
+        self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
+
+        self.bodyRank = 4
+        try:
+            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
+        except AttributeError:
+            pass
+
+    def system(self):
+        try:
+            return self.parent.system()
+        except AttributeError:
+            return None
+
+    def subAssign(self, childNew):
+        try:
+            self.append(childNew)
+            childNew.parent = self
+            childNew.bodyRank = self.bodyRank + 1
+            if self.system() != None:
+                self.system().subAssign(childNew)
+        except AttributeError:
+            return
 
 
 
