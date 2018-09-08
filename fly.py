@@ -26,9 +26,18 @@ class sbox(cmd.Cmd):
     def do_ls(self, line):
         """Print the accessible sublocations of your current location"""
         try:
-            print(self.loc.subsList())
+            print(self.loc.subList())
         except AttributeError:
             print("Error: Current location {} has no sublocations".format(self.loc))
+
+    def do_cd(self, line):
+        """Change Directory: Navigate the viewer to a numeric destination
+        (Numeric destinations can be found with ls)"""
+        try:
+            dest = int(line)
+            self.loc = self.loc.getSubs()[dest]
+        except:
+            print("Error: Current location {} has no sublocation [{}]".format(self.loc, line))
 
     def do_exit(self, line):
         """Close system"""
