@@ -31,6 +31,10 @@ gInUnit = {"mg":0.001,"g":1,"kg":1000,
            "massJovian":1.89813e30,
            "massSolar":1.98847e33}
 
+M_e = c.iau2015.M_earth # Earth masses: Mass unit used by typical planets
+M_j = c.iau2015.M_jup # Jovian masses: Mass unit used by gas giants and small stars
+M_s = c.iau2015.M_sun # Solar masses: Mass unit used by stars
+
 def convertMass(q1, u1, u2):
     if u1 == u2:
         return q1
@@ -46,7 +50,7 @@ def findLargestProportion(din,flavor=False):
 
 class Body:
     """
-    Superclass for all natural celestial objects
+    Superclass for most natural celestial objects
     """
     def __init__(self, name, # Identity information
                  mass=1, # Physical information
@@ -56,7 +60,7 @@ class Body:
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
         # Physical characteristics
-        self.mass = mass # Mass of the planet
+        self.mass = mass * self.massUnit # Mass of the planet
 
         # Positional characteristics
         self.posPhi = None # Position of the body relative to its parent
@@ -72,11 +76,98 @@ class Body:
         except AttributeError:
             return None
 
+    def getSubs(self, par=True, nat=True, syn=True):
+        lnat = self.orbitals
+        lsyn = self.satellites
+        lout = []
+        if par:
+            lout.append(self.parent)
+        if nat:
+            lout = lout + lnat
+        if syn:
+            lout = lout + lsyn
+        return lout
+
+    def subList(self):
+        oput = "Current Location: {} ({})".format(self.name, self.bodySubtype)
+        n = 0
+        #try:
+            #oput = oput + "\nParent: [\033[96m{}\033[0m] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
+            #n += 1
+        #except AttributeError:
+            #pass
+        oput = oput + "\n    Adjacent locations:"
+        for subloc in self.getSubs():
+            oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            n += 1
+        return oput
+
     def subAssign(self, childNew):
         try:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
+            if self.system() != None:
+                self.system().subAssign(childNew)
+        except AttributeError:
+            return
+
+
+class Grouping:
+    """
+    Superclass for organizational entities such as star clusters and debris fields
+    """
+    def __init__(self, name, # Identity information
+                 ruler=None, space=None): # Social information
+        self.name = name
+        self.orbitals = [] # Natural bodies orbiting this body; Moons, rings, etc.
+        self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+
+        # Positional characteristics
+        self.posPhi = None # Position of the body relative to its parent
+        self.posRho = None # Distance from the body to its parent body
+
+        self.ruler = ruler
+        self.sites = [] # Locations on the surface of the world, synthetic or geographical
+        self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
+
+    def system(self):
+        try:
+            return self.parent.system()
+        except AttributeError:
+            return None
+
+    def getSubs(self, par=True, nat=True, syn=True):
+        lnat = self.orbitals
+        lsyn = self.satellites
+        lout = []
+        if par:
+            lout.append(self.parent)
+        if nat:
+            lout = lout + lnat
+        if syn:
+            lout = lout + lsyn
+        return lout
+
+    def subList(self):
+        oput = "Current Location: {} ({})".format(self.name, self.bodySubtype)
+        n = 0
+        #try:
+            #oput = oput + "\nParent: [\033[96m{}\033[0m] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
+            #n += 1
+        #except AttributeError:
+            #pass
+        oput = oput + "\n    Adjacent locations:"
+        for subloc in self.getSubs():
+            oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            n += 1
+        return oput
+
+    def subAssign(self, childNew):
+        try:
+            self.orbitals.append(childNew)
+            childNew.parent = self
+            childNew.bodyRank = self.bodyRank
             if self.system() != None:
                 self.system().subAssign(childNew)
         except AttributeError:
@@ -95,7 +186,7 @@ class Planet(Body):
     """
     bodyType = "Planet"
     bodySubtype = "Planet"
-    massUnit = "massEarth"
+    massUnit = M_e
 
     def __init__(self, name, parent=None, # Identity information
                  composition="Rock", # Physical information
@@ -137,20 +228,20 @@ class Planet(Body):
 
 class GiantPlanet(Planet):
     bodySubtype = "Giant"
-    massUnit = "massJovian"
+    massUnit = M_j
 
 
 class DwarfPlanet(Planet):
     bodySubtype = "Dwarf"
 
 
-class Star:
+class Star(Body):
     """
     Star: Standard, very bright, celestial body; Core of most Systems
     """
     bodyType = "Star"
     bodySubtype = "Star"
-    massUnit = "massSolar"
+    massUnit = M_s
 
     def __init__(self, name, parent=None, # Identity information
                  mass=1, stellarClass="D", subtype="Main Sequence", # Physical information
@@ -175,23 +266,17 @@ class Star:
         except AttributeError:
             return None
 
-    def subsList(self):
-        oput = "{}: {}".format(self.bodySubtype, self.name)
-        n = 0
-        try:
-            oput = oput + "\nParent: [{}] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
-            n += 1
-        except AttributeError:
-            pass
-        oput = oput + "\n    Orbitals:"
-        for subloc in self.orbitals:
-            oput = oput + "\n   :[\033[96m{}\033[0m]: {} ({})".format(n, subloc.name, subloc.bodySubtype)
-            n += 1
-        oput = oput + "\n    Satellites:"
-        for subloc in self.satellites:
-            oput = oput + "\n   :[{}]: {} ({})".format(n, subloc.name, subloc.bodySubtype)
-            n += 1
-        return oput
+    def getSubs(self, par=True, nat=True, syn=True):
+        lnat = self.orbitals
+        lsyn = self.satellites
+        lout = []
+        if par:
+            lout.append(self.parent)
+        if nat:
+            lout = lout + lnat
+        if syn:
+            lout = lout + lsyn
+        return lout
 
     def subAssign(self, childNew):
         try:
@@ -208,7 +293,7 @@ class BlackHole(Star):
     bodySubtype = "Black Hole"
 
 
-class System:
+class System(Grouping):
     """
     System: Standard designation for a grouping of bodies, typically headed by one or more stars
     """
@@ -218,7 +303,7 @@ class System:
     def __init__(self, name, parent=None, # Identity information
                  posPhi=0, posRho=0, mapCoords="", # Physical information
                  ruler=None, space=None, rank=2): # Social information
-        self.name = name # STR: Common designation
+        super().__init__(name, ruler, space)
         self.parent = parent # OBJ: Object around which this body orbits
         self.posPhi = posPhi
         self.posRho = posRho
@@ -263,22 +348,20 @@ class System:
 ## ## MINOR TYPES ## ##
 ## ## ## ## ## ## ## ##
 
-class Belt:
+class Belt(Grouping):
     """
     Belt: A region of debris in orbit around a body, forming a ring
+    A belt has a Rho, but no Phi, because it exists at every value of Phi
     """
     bodyType = "Belt"
 
     def __init__(self, name, parent=None, # Identity information
                  posRho=0, composition={"rock":100.0}, # Physical information
                  ruler=None, space=None, rank=3): # Social information
-        self.name = name # STR: Common designation
-        self.parent = parent # OBJ: Object around which this body orbits
-        self.posRho = posRho
-        self.composition = composition
-        self.orbitals = []
+        super().__init__(name, ruler, space)
 
-        self.ruler = ruler
+        self.parent = parent # OBJ: Object around which this body orbits
+        self.composition = composition
 
         self.bodyRank = rank
         try:
@@ -326,7 +409,7 @@ class Belt:
         return oput
 
 
-class Minor:
+class Minor(Body):
     """
     Minor: An object too small to be gravitationally spherical
     Asteroids, meteors, comets, etc.
@@ -334,45 +417,19 @@ class Minor:
     def __init__(self, name, parent=None, # Identity information
                  composition="rock", # Physical information
                  ruler=None, space=None): # Social information
-        self.name = name
+        super().__init__(name, ruler, space)
         self.parent = parent
         self.composition = composition
-        self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
         # Physical characteristics
         self.mass = None # Mass of the planet
-        self.massUnit = "kg"
         self.radius = None # Distance from the center to the surface
-
-        # Positional characteristics
-        self.posPhi = None # Position of the planet relative to its parent
-        self.posRho = None # Distance from the planet to its parent body
-
-        self.ruler = ruler
-        self.sites = [] # Locations on the surface of the world, synthetic or geographical
-        self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
 
         self.bodyRank = 4
         try:
             self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
         except AttributeError:
             pass
-
-    def system(self):
-        try:
-            return self.parent.system()
-        except AttributeError:
-            return None
-
-    def subAssign(self, childNew):
-        try:
-            self.append(childNew)
-            childNew.parent = self
-            childNew.bodyRank = self.bodyRank + 1
-            if self.system() != None:
-                self.system().subAssign(childNew)
-        except AttributeError:
-            return
 
 
 
