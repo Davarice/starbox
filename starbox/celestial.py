@@ -150,7 +150,7 @@ class Grouping:
         n = 0
         oput = oput + "\n    Adjacent locations:"
         for subloc in self.getSubs():
-            oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            oput = oput + "\n    :[\033[96m{}\033[0m] {}".format(n, subloc) #.name, subloc.bodySubtype)
             n += 1
         return oput
 
@@ -204,17 +204,7 @@ class Planet(Body):
             pass
 
     def __str__(self):
-        oput = '"{}": {} {}'.format(self.name, self.composition, self.bodySubtype.lower())
-        system = self.system()
-        if system != None:
-            oput = oput + " in the {} system".format(system.name)
-        if self.ruler != self.parent.ruler:
-            oput = oput + ", under the control of {}".format(self.ruler)
-        if self.orbitals != []:
-            oput = oput + "\n -Has the following moons:"
-            for moon in self.orbitals:
-                oput = oput + "\n -- " + moon.__str__()
-        return oput
+        return f"{self.name} ({self.composition} {self.bodySubtype})"
 
 
 class GiantPlanet(Planet):
@@ -275,10 +265,13 @@ class Star(Body):
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            if self.parent.bodyType == "System":
-                self.parent.subAssign(childNew)
+            #if self.parent.bodyType == "System":
+                #self.parent.subAssign(childNew)
         except AttributeError:
             return
+
+    def __str__(self):
+        return f"{self.name} (Class {self.stellarClass} {self.bodySubtype})"
 
 
 class BlackHole(Star):
@@ -290,7 +283,6 @@ class System(Grouping):
     System: Standard designation for a grouping of bodies, typically headed by one or more stars
     """
     bodyType = "System"
-    bodySubtype = "System"
 
     def __init__(self, name, parent=None, # Identity information
                  posPhi=0, posRho=0, mapCoords="", # Physical information
@@ -301,6 +293,7 @@ class System(Grouping):
         self.posRho = posRho
         self.mapCoords = mapCoords
         self.core = [] # Massive objects at the core of the system; Typically stars
+        self.bodySubtype = "System"
 
         self.ruler = ruler
 
@@ -327,6 +320,34 @@ class System(Grouping):
             lout = lout + lsyn
         return lout
 
+    def refreshType(self):
+        ret = "System"
+        size = len(self.core)
+        stars = 0
+        others = 0
+        planets = 0
+        for obj in self.core:
+            if "Star" in obj.bodySubtype:
+                stars += 1
+            elif "Planet" in obj.bodyType:
+                planets += 1
+            else:
+                other += 1
+
+        if others == 0 and planets == 0: # All items are stars
+            ret = "Star " + ret
+        if others == 0 and stars == 0: # All items are planets
+            ret = "Planetary " + ret
+
+        if size == 2:
+            ret = "Binary " + ret
+        if size == 3:
+            ret = "Trinary " + ret
+        if size > 3:
+            ret = "Compound " + ret
+
+        self.bodySubtype = ret
+
     def subsList(self):
         oput = "{}: {}".format(self.bodySubtype, self.name)
         oput = oput + "\n    Core:"
@@ -343,11 +364,16 @@ class System(Grouping):
                 self.orbitals.append(childNew)
             elif childNew.bodyRank == self.bodyRank:
                 self.core.append(childNew)
+            self.refreshType()
         except AttributeError:
             pass
 
     def __dict__(self):
         return {"heads" : self.core, "bodies" : self.orbitals}
+
+    def __str__(self):
+        self.refreshType()
+        return f"{self.name} ({self.bodySubtype})"
 
 ## ## ## ## ## ## ## ##
 ## ## MINOR TYPES ## ##
@@ -361,7 +387,7 @@ class Belt(Grouping):
     bodyType = "Belt"
 
     def __init__(self, name, parent=None, # Identity information
-                 posRho=0, composition={"rock":100.0}, # Physical information
+                 posRho=0, composition={"Rock":100.0}, # Physical information
                  ruler=None, space=None, rank=3): # Social information
         super().__init__(name=name, ruler=ruler)
 
@@ -374,7 +400,7 @@ class Belt(Grouping):
         except AttributeError:
             pass
 
-        if self.parent.bodyType == "Star":
+        if self.parent.bodyType == "System":
             self.bodySubtype = "Belt"
         elif self.parent.bodyType == "Planet":
             self.bodySubtype = "Ring"
@@ -395,23 +421,13 @@ class Belt(Grouping):
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            if self.parent.bodyType == "System":
-                self.parent.subAssign(childNew)
+            #if self.parent.bodyType == "System":
+                #self.parent.subAssign(childNew)
         except AttributeError:
             pass
 
     def __str__(self):
-        oput = '"{}": A {} of {} around {}'.format(self.name, self.bodyType.lower(), self.comp().lower(), self.parent.name)
-        system = self.system()
-        #if system != None:
-            #oput = oput + " in the {} system".format(system.name)
-        if self.ruler != self.parent.ruler:
-            oput = oput + ", under the control of {}".format(self.ruler)
-        if self.orbitals != []:
-            oput = oput + "\n -Contains the following notable bodies:"
-            for moon in self.orbitals:
-                oput = oput + "\n -- " + moon.__str__()
-        return oput
+        return f"{self.name} ({self.comp().capitalize()} {self.bodySubtype})"
 
 
 class Minor(Body):
@@ -423,7 +439,7 @@ class Minor(Body):
     bodyType = "Minor"
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, composition="rock", # Physical information
+                 mass=1, composition="Rock", # Physical information
                  ruler=None, space=None, stype="Asteroid"): # Social information
         super().__init__(name=name, mass=mass, ruler=ruler)
         self.parent = parent
@@ -435,6 +451,9 @@ class Minor(Body):
             self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
         except AttributeError:
             pass
+
+    def __str__(self):
+        return f"{self.name} ({self.composition} {self.bodySubtype})"
 
 
 

@@ -16,8 +16,8 @@ def starbox():
 
 
 def genSol():
-    solSys = System("Sol")
-    sol = Star("the Sun", solSys)
+    sol = System("Sol")
+    s = Star("the Sun", sol)
 
     p = Planet("Mercury", sol)
 
@@ -28,7 +28,7 @@ def genSol():
 
     p = Planet("Mars", sol)
 
-    m = Belt("Inner Belt", sol, composition={"dust":50.0,"rock":50.0})
+    m = Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
     c = DwarfPlanet("Ceres", m)
     c = Minor("Vesta", m)
     c = Minor("Pallas", m)
@@ -50,4 +50,12 @@ def genSol():
     p = DwarfPlanet("Pluto", m)
     p.composition = "Ice"
 
-    return solSys
+    return sol
+
+def generate():
+    return genSol()
+
+
+
+
+

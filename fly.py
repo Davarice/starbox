@@ -11,8 +11,8 @@ import starbox
 #galaxy = [starbox.genSol(), starbox.genSol()]
 #galaxy[1].name = "Alternate Sol"
 
-galaxy = starbox.genSol()
-galaxy.name = "Not Sol"
+galaxy = starbox.generate()
+#galaxy.name = "Not Sol"
 
 _PromptString = "\033[95m{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
