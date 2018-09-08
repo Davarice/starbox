@@ -61,6 +61,7 @@ class Body:
 
         # Physical characteristics
         self.mass = mass * self.massUnit # Mass of the planet
+        self.radius = None # Distance from the center to the surface
 
         # Positional characteristics
         self.posPhi = None # Position of the body relative to its parent
@@ -91,11 +92,6 @@ class Body:
     def subList(self):
         oput = "Current Location: {} ({})".format(self.name, self.bodySubtype)
         n = 0
-        #try:
-            #oput = oput + "\nParent: [\033[96m{}\033[0m] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
-            #n += 1
-        #except AttributeError:
-            #pass
         oput = oput + "\n    Adjacent locations:"
         for subloc in self.getSubs():
             oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
@@ -141,7 +137,7 @@ class Grouping:
         lnat = self.orbitals
         lsyn = self.satellites
         lout = []
-        if par:
+        if par and self.parent != None:
             lout.append(self.parent)
         if nat:
             lout = lout + lnat
@@ -152,11 +148,6 @@ class Grouping:
     def subList(self):
         oput = "Current Location: {} ({})".format(self.name, self.bodySubtype)
         n = 0
-        #try:
-            #oput = oput + "\nParent: [\033[96m{}\033[0m] {} ({})".format(n, self.parent.name, self.parent.bodySubtype)
-            #n += 1
-        #except AttributeError:
-            #pass
         oput = oput + "\n    Adjacent locations:"
         for subloc in self.getSubs():
             oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
@@ -189,9 +180,9 @@ class Planet(Body):
     massUnit = M_e
 
     def __init__(self, name, parent=None, # Identity information
-                 composition="Rock", # Physical information
+                 mass=1, composition="Rock", # Physical information
                  ruler=None, space=None, dayLength=24): # Social information
-        super().__init__(name, ruler, space)
+        super().__init__(name=name, mass=mass, ruler=ruler)
         #self.name = name
         self.parent = parent
         self.composition = composition
@@ -232,7 +223,7 @@ class GiantPlanet(Planet):
 
 
 class DwarfPlanet(Planet):
-    bodySubtype = "Dwarf"
+    bodySubtype = "Dwarf Planet"
 
 
 class Star(Body):
@@ -246,6 +237,7 @@ class Star(Body):
     def __init__(self, name, parent=None, # Identity information
                  mass=1, stellarClass="D", subtype="Main Sequence", # Physical information
                  ruler=None, space=None): # Social information
+        super().__init__(name=name, mass=mass, ruler=ruler)
         self.name = name # STR: Common designation
         self.parent = parent # OBJ: Object around which this body orbits
         self.mass = mass # FLOAT: Mass of the star, given in Solar Masses
@@ -303,13 +295,12 @@ class System(Grouping):
     def __init__(self, name, parent=None, # Identity information
                  posPhi=0, posRho=0, mapCoords="", # Physical information
                  ruler=None, space=None, rank=2): # Social information
-        super().__init__(name, ruler, space)
+        super().__init__(name=name, ruler=ruler)
         self.parent = parent # OBJ: Object around which this body orbits
         self.posPhi = posPhi
         self.posRho = posRho
         self.mapCoords = mapCoords
-        self.heads = [] # Massive objects at the core of the system; Typically stars
-        self.bodies = [] # Objects directly orbiting the system core; Typically planets
+        self.core = [] # Massive objects at the core of the system; Typically stars
 
         self.ruler = ruler
 
@@ -321,6 +312,20 @@ class System(Grouping):
 
     def system(self):
         return self
+
+    def getSubs(self, par=True, nat=True, syn=True):
+        lcor = self.core
+        lnat = self.orbitals
+        lsyn = self.satellites
+        lout = []
+        if par and self.parent != None:
+            lout.append(self.parent)
+        if nat:
+            lout = lout + lcor
+            lout = lout + lnat
+        if syn:
+            lout = lout + lsyn
+        return lout
 
     def subsList(self):
         oput = "{}: {}".format(self.bodySubtype, self.name)
@@ -335,14 +340,14 @@ class System(Grouping):
     def subAssign(self, childNew):
         try:
             if childNew.bodyRank > self.bodyRank:
-                self.bodies.append(childNew)
+                self.orbitals.append(childNew)
             elif childNew.bodyRank == self.bodyRank:
-                self.heads.append(childNew)
+                self.core.append(childNew)
         except AttributeError:
             pass
 
     def __dict__(self):
-        return {"heads" : self.heads, "bodies" : self.bodies}
+        return {"heads" : self.core, "bodies" : self.orbitals}
 
 ## ## ## ## ## ## ## ##
 ## ## MINOR TYPES ## ##
@@ -358,7 +363,7 @@ class Belt(Grouping):
     def __init__(self, name, parent=None, # Identity information
                  posRho=0, composition={"rock":100.0}, # Physical information
                  ruler=None, space=None, rank=3): # Social information
-        super().__init__(name, ruler, space)
+        super().__init__(name=name, ruler=ruler)
 
         self.parent = parent # OBJ: Object around which this body orbits
         self.composition = composition
@@ -414,16 +419,16 @@ class Minor(Body):
     Minor: An object too small to be gravitationally spherical
     Asteroids, meteors, comets, etc.
     """
+    massUnit = u.kg
+    bodyType = "Minor"
+
     def __init__(self, name, parent=None, # Identity information
-                 composition="rock", # Physical information
-                 ruler=None, space=None): # Social information
-        super().__init__(name, ruler, space)
+                 mass=1, composition="rock", # Physical information
+                 ruler=None, space=None, stype="Asteroid"): # Social information
+        super().__init__(name=name, mass=mass, ruler=ruler)
         self.parent = parent
         self.composition = composition
-
-        # Physical characteristics
-        self.mass = None # Mass of the planet
-        self.radius = None # Distance from the center to the surface
+        self.bodySubtype = stype
 
         self.bodyRank = 4
         try:

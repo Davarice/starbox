@@ -1,3 +1,4 @@
+print("Loading StarBox...")
 import cmd, sys
 
 import collections
@@ -16,7 +17,18 @@ galaxy.name = "Not Sol"
 _PromptString = "\033[95m{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
 def LocToPath(loc):
-    return "~"
+    tloc = loc
+    npath = ""
+    while tloc != None:
+        try:
+            tname = tloc.name
+            npath = "/" + tname + npath
+            tloc = tloc.parent
+        except AttributeError:
+            tloc = None
+            pass
+    npath = "~" + npath
+    return npath.lower().replace(" ","_")
 
 class sbox(cmd.Cmd):
     host = "StarBox"
@@ -25,11 +37,10 @@ class sbox(cmd.Cmd):
 
     def do_ls(self, line):
         """Print the accessible sublocations of your current location"""
-        #try:
-            #print(self.loc.subList())
-        #except AttributeError:
-            #print("Error: Current location {} has no sublocations".format(self.loc))
-        print(self.loc.subList())
+        try:
+            print(self.loc.subList())
+        except AttributeError as e:
+            print("Error: Current location ({}) has no sublocations ({})".format(self.loc, e))
 
     def do_cd(self, line):
         """Change Directory: Navigate the viewer to a numeric destination
@@ -38,7 +49,15 @@ class sbox(cmd.Cmd):
             dest = int(line)
             self.loc = self.loc.getSubs()[dest]
         except:
-            print("Error: Current location {} has no sublocation [{}]".format(self.loc, line))
+            print("Error: Current location ({}) has no sublocation [{}]".format(self.loc, line))
+        self.refreshPrompt()
+
+    def do_info(self, line):
+        """Info: Print information about the current location"""
+        try:
+            print(self.loc.printData())
+        except:
+            print("Current location ({}) is boring".format(self.loc))
 
     def do_exit(self, line):
         """Close system"""
@@ -59,7 +78,7 @@ class sbMain(sbox):
     def __init__(self, user="Guest"):
         super().__init__()
         self.user = user
-        self.loc = galaxy.heads[0]
+        self.loc = galaxy
         self.refreshPrompt()
 
     def refreshPrompt(self):
@@ -73,6 +92,10 @@ class sbMain(sbox):
 
 
 sbMain().cmdloop()
+
+
+
+
 
 
 

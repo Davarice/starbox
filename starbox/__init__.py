@@ -30,6 +30,8 @@ def genSol():
 
     m = Belt("Inner Belt", sol, composition={"dust":50.0,"rock":50.0})
     c = DwarfPlanet("Ceres", m)
+    c = Minor("Vesta", m)
+    c = Minor("Pallas", m)
 
     p = GiantPlanet("Jupiter", sol)
     p.composition = "Gas"
@@ -44,8 +46,8 @@ def genSol():
     p = GiantPlanet("Neptune", sol)
     p.composition = "Ice"
 
-    p = DwarfPlanet("Pluto", sol)
+    m = Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
+    p = DwarfPlanet("Pluto", m)
     p.composition = "Ice"
 
-    m = Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
     return solSys
