@@ -48,6 +48,8 @@ def findLargestProportion(din,flavor=False):
     return dsort[0][0]
 
 
+### Superclasses:
+
 class Body:
     """
     Superclass for most natural celestial objects
@@ -109,6 +111,7 @@ class Body:
             return
 
 
+
 class Grouping:
     """
     Superclass for organizational entities such as star clusters and debris fields
@@ -166,6 +169,8 @@ class Grouping:
 
 
 
+### Primary Classes:
+## Body-type
 
 class Planet(Body):
     """
@@ -206,11 +211,9 @@ class Planet(Body):
     def __str__(self):
         return f"{self.name} ({self.composition} {self.bodySubtype})"
 
-
 class GiantPlanet(Planet):
     bodySubtype = "Giant"
     massUnit = M_j
-
 
 class DwarfPlanet(Planet):
     bodySubtype = "Dwarf Planet"
@@ -273,14 +276,43 @@ class Star(Body):
     def __str__(self):
         return f"{self.name} (Class {self.stellarClass} {self.bodySubtype})"
 
-
 class BlackHole(Star):
     bodySubtype = "Black Hole"
 
 
+class Minor(Body):
+    """
+    Minor: An object too small to be gravitationally spherical
+    Asteroids, meteors, comets, etc.
+    """
+    massUnit = u.kg
+    bodyType = "Minor"
+
+    def __init__(self, name, parent=None, # Identity information
+                 mass=1, composition="Rock", # Physical information
+                 ruler=None, space=None, stype="Asteroid"): # Social information
+        super().__init__(name=name, mass=mass, ruler=ruler)
+        self.parent = parent
+        self.composition = composition
+        self.bodySubtype = stype
+
+        self.bodyRank = 4
+        try:
+            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
+        except AttributeError:
+            pass
+
+    def __str__(self):
+        return f"{self.name} ({self.composition} {self.bodySubtype})"
+
+
+
+## Grouping-type
+
 class System(Grouping):
     """
-    System: Standard designation for a grouping of bodies, typically headed by one or more stars
+    System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
+    Represents a significant gravitational point, and is composed of a core as well as orbitals
     """
     bodyType = "System"
 
@@ -375,14 +407,12 @@ class System(Grouping):
         self.refreshType()
         return f"{self.name} ({self.bodySubtype})"
 
-## ## ## ## ## ## ## ##
-## ## MINOR TYPES ## ##
-## ## ## ## ## ## ## ##
-
 class Belt(Grouping):
     """
     Belt: A region of debris in orbit around a body, forming a ring
     A belt has a Rho, but no Phi, because it exists at every value of Phi
+    Unlike a System, a belt represents a disparate cloud of abstract objects rather than a single point
+    As such, orbitals of a Belt represent objects found within the Belt, rather than in orbit of it
     """
     bodyType = "Belt"
 
@@ -428,32 +458,6 @@ class Belt(Grouping):
 
     def __str__(self):
         return f"{self.name} ({self.comp().capitalize()} {self.bodySubtype})"
-
-
-class Minor(Body):
-    """
-    Minor: An object too small to be gravitationally spherical
-    Asteroids, meteors, comets, etc.
-    """
-    massUnit = u.kg
-    bodyType = "Minor"
-
-    def __init__(self, name, parent=None, # Identity information
-                 mass=1, composition="Rock", # Physical information
-                 ruler=None, space=None, stype="Asteroid"): # Social information
-        super().__init__(name=name, mass=mass, ruler=ruler)
-        self.parent = parent
-        self.composition = composition
-        self.bodySubtype = stype
-
-        self.bodyRank = 4
-        try:
-            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
-        except AttributeError:
-            pass
-
-    def __str__(self):
-        return f"{self.name} ({self.composition} {self.bodySubtype})"
 
 
 

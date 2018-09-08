@@ -75,6 +75,10 @@ class sbox(cmd.Cmd):
 
     do_EOF = do_exit
 
+    def refreshPrompt(self):
+        self.path = LocToPath(self.loc)
+        self.prompt = _PromptString.format(u=self.user.lower(), h=self.host, p=self.path)
+
 class sbMain(sbox):
     """
     "Basic" context, contains navigation and identity tools
@@ -97,10 +101,6 @@ class sbMain(sbox):
         except:
             print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
         self.refreshPrompt()
-
-    def refreshPrompt(self):
-        self.path = LocToPath(self.loc)
-        self.prompt = _PromptString.format(u=self.user.lower(), h=self.host, p=self.path)
 
     def do_su(self, line):
         print("Switching user")
