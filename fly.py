@@ -12,6 +12,7 @@ import starbox
 #galaxy[1].name = "Alternate Sol"
 
 galaxy = starbox.generate()
+gst = 24568178.5
 #galaxy.name = "Not Sol"
 
 _PromptString = "\033[95m{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
@@ -60,15 +61,6 @@ class sbox(cmd.Cmd):
         except AttributeError as e:
             print("Error: Selected location ({}) has no sublocations ({})".format(loc, e))
 
-    def do_cd(self, line):
-        """Change Directory: Navigate the viewer to a numeric destination
-        (Numeric destinations can be found with ls)"""
-        try:
-            self.loc = PathToLoc(self, line)
-        except:
-            print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
-        self.refreshPrompt()
-
     def do_info(self, line):
         """Info: Print information about the selected location"""
         try:
@@ -83,11 +75,6 @@ class sbox(cmd.Cmd):
 
     do_EOF = do_exit
 
-
-
-
-
-
 class sbMain(sbox):
     """
     "Basic" context, contains navigation and identity tools
@@ -96,6 +83,19 @@ class sbMain(sbox):
         super().__init__()
         self.user = user
         self.loc = galaxy
+        self.refreshPrompt()
+
+    def precmd(self,line):
+        print(f"\033[33mCurrent Time: {gst}\033[0m")
+        return line
+
+    def do_cd(self, line):
+        """Change Directory: Navigate the viewer to a numeric destination
+        (Numeric destinations can be found with ls)"""
+        try:
+            self.loc = PathToLoc(self, line)
+        except:
+            print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
         self.refreshPrompt()
 
     def refreshPrompt(self):
