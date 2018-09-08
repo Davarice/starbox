@@ -30,34 +30,51 @@ def LocToPath(loc):
     npath = "~" + npath
     return npath.lower().replace(" ","_")
 
+def PathToLoc(box, path):
+    loc = box.loc
+    if path == "":
+        return loc
+    lpath = path.split("/")
+    tpath = lpath.copy()
+    for jump in lpath: # For each number included in the path, try to go there
+        try:
+            dest = int(tpath.pop(0))
+            nloc = loc.getSubs()[dest]
+        except Exception as e: # Couldnt go there? Output as far as you got
+            print(f"Could not navigate to {loc}[{jump}]")
+            return loc
+        else:
+            loc = nloc
+    return loc
+
+
 class sbox(cmd.Cmd):
     host = "StarBox"
     intro = "StarBox loaded. For help: '?'"
     farewell = "System closing"
 
     def do_ls(self, line):
-        """Print the accessible sublocations of your current location"""
+        """Print the accessible sublocations of the selected location"""
         try:
-            print(self.loc.subList())
+            print(PathToLoc(self, line).subList())
         except AttributeError as e:
-            print("Error: Current location ({}) has no sublocations ({})".format(self.loc, e))
+            print("Error: Selected location ({}) has no sublocations ({})".format(loc, e))
 
     def do_cd(self, line):
         """Change Directory: Navigate the viewer to a numeric destination
         (Numeric destinations can be found with ls)"""
         try:
-            dest = int(line)
-            self.loc = self.loc.getSubs()[dest]
+            self.loc = PathToLoc(self, line)
         except:
-            print("Error: Current location ({}) has no sublocation [{}]".format(self.loc, line))
+            print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
         self.refreshPrompt()
 
     def do_info(self, line):
-        """Info: Print information about the current location"""
+        """Info: Print information about the selected location"""
         try:
-            print(self.loc.printData())
+            print(PathToLoc(self, line).printData())
         except:
-            print("Current location ({}) is boring".format(self.loc))
+            print("Selected location ({}) is boring".format(self.loc))
 
     def do_exit(self, line):
         """Close system"""
