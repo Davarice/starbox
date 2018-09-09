@@ -105,8 +105,8 @@ class Body:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            if self.system() != None:
-                self.system().subAssign(childNew)
+            #if self.system() != None:
+                #self.system().subAssign(childNew)
         except AttributeError:
             return
 
@@ -162,8 +162,8 @@ class Grouping:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank
-            if self.system() != None:
-                self.system().subAssign(childNew)
+            #if self.system() != None:
+                #self.system().subAssign(childNew)
         except AttributeError:
             return
 
@@ -308,6 +308,75 @@ class Minor(Body):
 
 
 ## Grouping-type
+
+class Galaxy(Grouping):
+    """
+    System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
+    Represents a significant gravitational point, and is composed of a core as well as orbitals
+    """
+    bodyType = "Galaxy"
+
+    def __init__(self, name, parent=None, # Identity information
+                 posPhi=0, posRho=0, mapCoords="", # Physical information
+                 ruler=None, space=None, rank=1): # Social information
+        super().__init__(name=name, ruler=ruler)
+        self.parent = parent # OBJ: Object around which this body orbits
+        self.posPhi = posPhi
+        self.posRho = posRho
+        self.mapCoords = mapCoords
+        self.core = [] # Massive objects at the core of the galaxy; Typically supermassive black holes
+        self.bodySubtype = "Galaxy"
+
+        self.ruler = ruler
+
+        self.bodyRank = rank
+        try:
+            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
+        except AttributeError:
+            pass
+
+    def system(self):
+        return self
+
+    def getSubs(self, par=True, nat=True, syn=True):
+        lcor = self.core
+        lnat = self.orbitals
+        lsyn = [] #self.satellites
+        lout = []
+        if par and self.parent != None:
+            lout.append(self.parent)
+        if nat:
+            lout = lout + lcor
+            lout = lout + lnat
+        if syn:
+            lout = lout + lsyn
+        return lout
+
+    def subsList(self):
+        oput = "{}: {}".format(self.bodySubtype, self.name)
+        oput = oput + "\n    Core:"
+        for subloc in self.heads:
+            oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
+        oput = oput + "\n    Orbitals:"
+        for subloc in self.bodies:
+            oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
+        return oput
+
+    def subAssign(self, childNew):
+        try:
+            childNew.parent = self
+            if childNew.bodyRank > self.bodyRank:
+                self.orbitals.append(childNew)
+            elif childNew.bodyRank == self.bodyRank:
+                self.core.append(childNew)
+        except AttributeError:
+            pass
+
+    def __dict__(self):
+        return {"heads" : self.core, "bodies" : self.orbitals}
+
+    def __str__(self):
+        return f"{self.name} ({self.bodySubtype})"
 
 class System(Grouping):
     """

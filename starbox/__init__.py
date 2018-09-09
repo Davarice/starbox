@@ -52,8 +52,27 @@ def genSol():
 
     return sol
 
+def genBC():
+    bc = System("Beta Cygni")
+    s1 = Star("Albireo A")
+    s2 = Star("Albireo B")
+
+    g = GiantPlanet("Beta Cygni I", bc)
+    g.composition = "Ice"
+
+    g = GiantPlanet("Beta Cygni II", bc)
+    g.composition = "Gas"
+    p = Planet("Beta Cygni IIa", g)
+    p = DwarfPlanet("Beta Cygni IIb", g)
+    p.composition = "Ice"
+
+    return bc
+
 def generate():
-    return genSol()
+    mw = Galaxy("Milky Way")
+    mw.subAssign(genSol())
+    mw.subAssign(genBC())
+    return mw
 
 
 

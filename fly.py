@@ -25,7 +25,7 @@ def LocToPath(loc):
         except AttributeError:
             tloc = None
             pass
-    npath = "~" + npath
+    #npath = "~" + npath
     return npath.lower().replace(" ","_")
 
 def PathToLoc(box, path, loc=None):
@@ -51,7 +51,6 @@ def PathToLoc(box, path, loc=None):
             #return loc
         else:
             loc = nloc
-    #print(loc)
     return loc
 
 
@@ -66,22 +65,27 @@ class sbox(cmd.Cmd):
         self.loc = root
         self.refreshPrompt()
 
+    def interject(self, content, resume=""):
+        self.stdout.write(f"\n{content}\n{self.prompt}{resume}")
+
     ## Autocomplete using available options from the world
     def completePATHING(self, text, line, begidx, endidx):
         full = line.split(" ")
         full.pop(0) # 0 is the command itself; gtfo
         vloc = self.loc
-        lret = None
+        lret = []
         for sec in full: # Do it on every argument, but only output for the last
-            if re.match('^[\d/]*$', sec) != None:
-                vloc = PathToLoc(self,sec)
+            if re.match('^[\d/]*$', sec) != None and re.match('.*\d$', sec) == None:
+                if sec.startswith("/"):
+                    vloc = root
+                sec = sec.strip("/")
                 subsec = sec.split("/")
                 for rnum in subsec:
                     vloc = PathToLoc(self, rnum, vloc)
-                lret = vloc.getSubs()
-        nret = list(range(len(lret)))
-        sret = [str(r) for r in nret]
-        self.stdout.write(f"\n{nret}\n{self.prompt}{line}")
+                lret = vloc.getSubs() # list return
+        nret = list(range(len(lret))) # numbers return
+        if nret != []:
+            self.interject(str(nret)[1:-1],line)
         return
 
     complete_cd = completePATHING
@@ -92,7 +96,8 @@ class sbox(cmd.Cmd):
     def do_ls(self, line):
         """Print the accessible sublocations of the selected location"""
         try:
-            print(PathToLoc(self, line).subList())
+            loc = PathToLoc(self, line)
+            print(loc.subList())
         except AttributeError as e:
             print("Error: Selected location ({}) has no sublocations ({})".format(loc, e))
 
@@ -101,16 +106,17 @@ class sbox(cmd.Cmd):
     def do_info(self, line):
         """Info: Print information about the selected location"""
         try:
-            print(PathToLoc(self, line).printData())
+            loc = PathToLoc(self, line)
+            print(loc.printData())
         except:
-            print("Selected location ({}) is boring".format(self.loc))
+            print("Selected location ({}) is boring".format(loc))
 
     complete_info = completePATHING
 
     def default(self, line):
         if "EOF" in line:
             print("")
-            return self.do_exit(line)
+            return #self.do_exit(line)
         print(f"ERROR: Command '{line.split()[0]}' unknown")
 
     def do_exit(self, line):
@@ -157,6 +163,7 @@ class sbMain(sbox):
         
 
     def do_su(self, line):
+        """Switch User"""
         print("Switching user")
         newu = line.split(" ")[0]
         self.__init__(newu)
