@@ -3,7 +3,7 @@ import astropy
 from astropy import constants as c
 from astropy import units as u
 
-#__all__ = ["Planet","Star","System"]
+#__all__ = ["Minor","DwarfPlanet","Planet","GiantPlanet","Star","BlackHole","Belt","System","Galaxy"]
 
 """
 /starbox/celestial.py
@@ -24,29 +24,9 @@ bodyRank: Hierarchy of mass of celestials
 
 """
 
-# Lookup tables for scale conversions
-mInUnit = {"mm":0.001,"m":1,"km":1000}
-gInUnit = {"mg":0.001,"g":1,"kg":1000,
-           "massEarth":5.9722e27,
-           "massJovian":1.89813e30,
-           "massSolar":1.98847e33}
-
 M_e = c.iau2015.M_earth # Earth masses: Mass unit used by typical planets
 M_j = c.iau2015.M_jup # Jovian masses: Mass unit used by gas giants and small stars
 M_s = c.iau2015.M_sun # Solar masses: Mass unit used by stars
-
-def convertMass(q1, u1, u2):
-    if u1 == u2:
-        return q1
-    else:
-        q0 = q1*gInUnit[u1]
-        q2 = q0/gInUnit[u2]
-        return q2
-
-def findLargestProportion(din,flavor=False):
-    dsort = [(k, din[k]) for k in sorted(din, key=din.get, reverse=True)]
-    return dsort[0][0]
-
 
 ### Superclasses:
 
