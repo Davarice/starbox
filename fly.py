@@ -8,11 +8,26 @@ from astropy import constants as c
 from astropy import units as u
 
 import starbox
+#import spaceturtle
 
-root = starbox.generate()
+"""
+MAIN USER INTERFACE MODULE
+
+ALL actions taken by users are controlled from this file
+Core commands, available in all contexts, are defined in the 'sbox' class
+Subsequent subclasses are invoked for specific contexts (including the default context)
+    sbMain: Default context; Navigate and view the world like a file browser
+    sbWep: Weaponry context; Navigate, configure, and test small arms
+    sbVeh: Vehicular context; Navigate, configure, and test vehicles
+    sbEDIT: EDITOR context; Default context with ultimate power; ### DANGER ###
+
+Utility functions imminently below
+"""
+
+space = starbox.generate()
 gst = 24568178.5
 
-_PromptString = "\033[95m{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
+_PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
 def LocToPath(loc):
     tloc = loc
@@ -36,7 +51,7 @@ def PathToLoc(box, path, loc=None):
     lpath = path.split("/")
     tpath = lpath.copy()
     if tpath[0] == "":
-        loc = root
+        loc = box.root
         tpath.remove("")
     for jump in lpath: # For each number included in the path, try to go there
         try:
@@ -55,14 +70,16 @@ def PathToLoc(box, path, loc=None):
 
 
 class sbox(cmd.Cmd):
-    host = "StarBox"
+    host = "StarBox.core"
     intro = "StarBox loaded. For help: '?'"
     farewell = "StarBox powering down...\nRemoving all sapients...\nVirtual universe purged.\nInterface closing."
+    root = space
+    promptColor = "\033[95m"
 
     def __init__(self, user="Guest"):
         super().__init__()
         self.user = user
-        self.loc = root
+        self.loc = self.root
         self.refreshPrompt()
 
     def interject(self, content, resume=""):
@@ -103,24 +120,16 @@ class sbox(cmd.Cmd):
 
     complete_ls = completePATHING
 
-    def do_info(self, line):
-        """Info: Print information about the selected location"""
-        try:
-            loc = PathToLoc(self, line)
-            print(loc.printData())
-        except:
-            print("Selected location ({}) is boring".format(loc))
-
     complete_info = completePATHING
 
     def default(self, line):
         if "EOF" in line:
             print("")
-            return #self.do_exit(line)
+            return self.do_exit(line)
         print(f"ERROR: Command '{line.split()[0]}' unknown")
 
     def do_exit(self, line):
-        """Close StarBox and return to outer shell, if any"""
+        """Close current context and return to outer shell, if any"""
         print(f"{self.farewell}")
         return True
 
@@ -131,7 +140,48 @@ class sbox(cmd.Cmd):
 
     def refreshPrompt(self):
         self.path = LocToPath(self.loc)
-        self.prompt = _PromptString.format(u=self.user.lower(), h=self.host, p=self.path)
+        self.prompt = _PromptString.format(c=self.promptColor, u=self.user.lower(), h=self.host, p=self.path)
+
+
+"""
+### ### ### ### ### ### ### ###
+END OF CORE CONTEXT
+From this point on, contextual commands only
+### ### ### ### ### ### ### ###
+"""
+
+
+class sbWep(sbox):
+    """
+    Weaponry context, for configuration of small arms
+    """
+    host = "StarBox.wepn"
+    promptColor = "\033[93m"
+    farewell = "Weaponry mode closing..."
+
+
+
+
+
+class sbVeh(sbox):
+    """
+    Vehicle context, for configuration of surface craft and voidcraft
+    """
+    host = "StarBox.vhcl"
+    promptColor = "\033[96m"
+    farewell = "Vehicular mode closing..."
+
+
+
+
+
+class sbEDIT(sbox):
+    """
+    World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
+    """
+    host = "StarBox.EDIT"
+    promptColor = "\033[91m"
+    farewell = "EDITOR mode closing..."
 
 
 
@@ -141,6 +191,7 @@ class sbMain(sbox):
     """
     "Basic" context, contains navigation and identity tools
     """
+    host = "StarBox.main"
 
     #def postcmd(self, stop, line):
         #if stop != True:
@@ -156,17 +207,52 @@ class sbMain(sbox):
             print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
         self.refreshPrompt()
 
+    def do_info(self, line):
+        """Info: Print information about the selected location"""
+        try:
+            loc = PathToLoc(self, line)
+            starbox.spaceturtle.DrawMap(loc)
+            print(loc.printData())
+        except:
+            print("Selected location ({}) is boring".format(loc))
+
     def help_science(self, line):
         print("asdfqwert")
 
     #def do_science(self, line):
         
 
+    def do_weaponry(self, line):
+        """Enter WEAPONS mode;
+View, configure, and test small arms"""
+        print("Entering subcontext...")
+        sbWep(self.user).cmdloop()
+        print("Returning to standard context")
+
+    do_wp = do_weaponry
+
+    def do_edit(self, line):
+        """Enter EDITOR mode;
+Full control over game world"""
+        if self.user != "root":
+            print("\033[91mAccess Denied\033[0m")
+            return
+        print("Entering subcontext...")
+        sbEDIT(self.user).cmdloop()
+        print("Returning to standard context")
+
     def do_su(self, line):
-        """Switch User"""
+        """Switch User
+For now this simply changes the "username"..."""
         print("Switching user")
         newu = line.split(" ")[0]
         self.__init__(newu)
+
+    def default(self, line):
+        if "EOF" in line:
+            print("")
+            return #self.do_exit(line) # In MAIN context, do not allow Ctrl-D exiting
+        print(f"ERROR: Command '{line.split()[0]}' unknown")
 
 try:
     sbMain().cmdloop()
