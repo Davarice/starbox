@@ -28,6 +28,11 @@ M_e = c.iau2015.M_earth # Earth masses: Mass unit used by typical planets
 M_j = c.iau2015.M_jup # Jovian masses: Mass unit used by gas giants and small stars
 M_s = c.iau2015.M_sun # Solar masses: Mass unit used by stars
 
+def findLargestProportion(din,flavor=False):
+    dsort = [(k, din[k]) for k in sorted(din, key=din.get, reverse=True)]
+    return dsort[0][0]
+
+
 ### Superclasses:
 
 class Body:
