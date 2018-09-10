@@ -1,66 +1,62 @@
-from .celestial import *
+from . import celestial
 
-#__all__ = ["celestial", "generate", "M_e", "M_j", "M_s"]
-
-def starbox():
-    pass
-
+__all__ = ["generate"]
 
 def genSol():
-    sol = System("Sol")
-    s = Star("the Sun", sol)
+    sol = celestial.System("Sol")
+    s = celestial.Star("the Sun", sol)
 
-    p = Planet("Mercury", sol)
+    p = celestial.Planet("Mercury", sol)
 
-    p = Planet("Venus", sol)
+    p = celestial.Planet("Venus", sol)
 
-    p = Planet("Earth", sol)
-    m = DwarfPlanet("Luna", p)
+    p = celestial.Planet("Earth", sol)
+    m = celestial.DwarfPlanet("Luna", p)
 
-    p = Planet("Mars", sol)
+    p = celestial.Planet("Mars", sol)
 
-    m = Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
-    c = DwarfPlanet("Ceres", m)
-    c = Minor("Vesta", m)
-    c = Minor("Pallas", m)
+    m = celestial.Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
+    c = celestial.DwarfPlanet("Ceres", m)
+    c = celestial.Minor("Vesta", m)
+    c = celestial.Minor("Pallas", m)
 
-    p = GiantPlanet("Jupiter", sol)
+    p = celestial.GiantPlanet("Jupiter", sol)
     p.composition = "Gas"
 
-    p = GiantPlanet("Saturn", sol)
+    p = celestial.GiantPlanet("Saturn", sol)
     p.composition = "Gas"
-    m = Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
+    m = celestial.Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
 
-    p = GiantPlanet("Caelus", sol)
+    p = celestial.GiantPlanet("Caelus", sol)
     p.composition = "Ice"
 
-    p = GiantPlanet("Neptune", sol)
+    p = celestial.GiantPlanet("Neptune", sol)
     p.composition = "Ice"
 
-    m = Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
-    p = DwarfPlanet("Pluto", m)
+    m = celestial.Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
+    p = celestial.DwarfPlanet("Pluto", m)
     p.composition = "Ice"
 
     return sol
 
 def genBC():
-    bc = System("Beta Cygni")
-    s1 = Star("Albireo A")
-    s2 = Star("Albireo B")
+    bc = celestial.System("Beta Cygni")
+    s1 = celestial.Star("Albireo A")
+    s2 = celestial.Star("Albireo B")
 
-    g = GiantPlanet("Beta Cygni I", bc)
+    g = celestial.GiantPlanet("Beta Cygni I", bc)
     g.composition = "Ice"
 
-    g = GiantPlanet("Beta Cygni II", bc)
+    g = celestial.GiantPlanet("Beta Cygni II", bc)
     g.composition = "Gas"
-    p = Planet("Beta Cygni IIa", g)
-    p = DwarfPlanet("Beta Cygni IIb", g)
+    p = celestial.Planet("Beta Cygni IIa", g)
+    p = celestial.DwarfPlanet("Beta Cygni IIb", g)
     p.composition = "Ice"
 
     return bc
 
 def generate():
-    mw = Galaxy("Milky Way")
+    mw = celestial.Galaxy("Milky Way")
     mw.subAssign(genSol())
     mw.subAssign(genBC())
     return mw

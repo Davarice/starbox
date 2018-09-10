@@ -3,7 +3,7 @@ import astropy
 from astropy import constants as c
 from astropy import units as u
 
-#__all__ = ["Minor","DwarfPlanet","Planet","GiantPlanet","Star","BlackHole","Belt","System","Galaxy"]
+__all__ = ["Minor","DwarfPlanet","Planet","GiantPlanet","Star","BlackHole","Belt","System","Galaxy"]
 
 """
 /starbox/celestial.py
@@ -90,8 +90,6 @@ class Body:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            #if self.system() != None:
-                #self.system().subAssign(childNew)
         except AttributeError:
             return
 
@@ -112,8 +110,7 @@ class Grouping:
         self.posRho = None # Distance from the body to its parent body
 
         self.ruler = ruler
-        self.sites = [] # Locations on the surface of the world, synthetic or geographical
-        self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
+        self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
 
     def system(self):
         try:
@@ -147,8 +144,6 @@ class Grouping:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank
-            #if self.system() != None:
-                #self.system().subAssign(childNew)
         except AttributeError:
             return
 
@@ -213,12 +208,12 @@ class Star(Body):
     massUnit = M_s
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, stellarClass="D", subtype="Main Sequence", # Physical information
+                 mass=1, stellarClass=None, subtype="Main Sequence", # Physical information
                  ruler=None, space=None): # Social information
         super().__init__(name=name, mass=mass, ruler=ruler)
-        self.name = name # STR: Common designation
-        self.parent = parent # OBJ: Object around which this body orbits
-        self.mass = mass # FLOAT: Mass of the star, given in Solar Masses
+        self.name = name # Common designation
+        self.parent = parent # Object around which this body orbits OR group in which it belongs
+        self.mass = mass # Mass of the star, given in Solar Masses
         self.stellarClass = stellarClass
         self.stellarSubtype = subtype
         self.ruler = ruler
@@ -253,8 +248,6 @@ class Star(Body):
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            #if self.parent.bodyType == "System":
-                #self.parent.subAssign(childNew)
         except AttributeError:
             return
 
@@ -505,8 +498,6 @@ class Belt(Grouping):
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
-            #if self.parent.bodyType == "System":
-                #self.parent.subAssign(childNew)
         except AttributeError:
             pass
 

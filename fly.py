@@ -1,5 +1,4 @@
 print("Loading StarBox...")
-#import cmd2 as cmd, sys
 import cmd, sys, re
 
 import collections
@@ -8,7 +7,6 @@ from astropy import constants as c
 from astropy import units as u
 
 import starbox
-#import spaceturtle
 
 """
 MAIN USER INTERFACE MODULE
@@ -24,7 +22,7 @@ Subsequent subclasses are invoked for specific contexts (including the default c
 Utility functions imminently below
 """
 
-space = starbox.generate()
+space = starbox.generators.generate() # TODO: replace these two lines with a load function
 gst = 24568178.5
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
@@ -40,7 +38,6 @@ def LocToPath(loc):
         except AttributeError:
             tloc = None
             pass
-    #npath = "~" + npath
     return npath.lower().replace(" ","_")
 
 def PathToLoc(box, path, loc=None):
@@ -61,9 +58,7 @@ def PathToLoc(box, path, loc=None):
             else:
                 nloc = loc
         except Exception as e: # Couldnt go there? Output as far as you got
-            #print(f"Could not navigate to {loc}[{jump}]")
             break
-            #return loc
         else:
             loc = nloc
     return loc
@@ -76,7 +71,7 @@ class sbox(cmd.Cmd):
     root = space
     promptColor = "\033[95m"
 
-    def __init__(self, user="Guest"):
+    def __init__(self, user="User"):
         super().__init__()
         self.user = user
         self.loc = self.root
@@ -156,7 +151,7 @@ class sbWep(sbox):
     Weaponry context, for configuration of small arms
     """
     host = "StarBox.wepn"
-    promptColor = "\033[93m"
+    promptColor = "\033[93m" # Yellow prompt for weapons mode
     farewell = "Weaponry mode closing..."
 
 
@@ -168,7 +163,7 @@ class sbVeh(sbox):
     Vehicle context, for configuration of surface craft and voidcraft
     """
     host = "StarBox.vhcl"
-    promptColor = "\033[96m"
+    promptColor = "\033[96m" # Cyan prompt for vehicular mode
     farewell = "Vehicular mode closing..."
 
 
@@ -180,7 +175,7 @@ class sbEDIT(sbox):
     World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
     """
     host = "StarBox.EDIT"
-    promptColor = "\033[91m"
+    promptColor = "\033[91m" # RED prompt for VERY DANGEROUS mode
     farewell = "EDITOR mode closing..."
 
 
@@ -216,23 +211,30 @@ class sbMain(sbox):
         except:
             print("Selected location ({}) is boring".format(loc))
 
-    def help_science(self, line):
-        print("asdfqwert")
+    #def help_navigation(self, line):
+        #print("")
 
-    #def do_science(self, line):
-        
+
+    #def do_vehicles(self, line):
+        #"""Enter VEHICULAR mode:
+#View, configure, and test transportation vessels"""
+        #print("Entering subcontext...")
+        #sbWep(self.user).cmdloop()
+        #print("Returning to standard context")
+    #do_vh = do_vehicles # Alias
+
 
     def do_weaponry(self, line):
-        """Enter WEAPONS mode;
+        """Enter WEAPONS mode:
 View, configure, and test small arms"""
         print("Entering subcontext...")
         sbWep(self.user).cmdloop()
         print("Returning to standard context")
+    do_wp = do_weaponry # Alias
 
-    do_wp = do_weaponry
 
     def do_edit(self, line):
-        """Enter EDITOR mode;
+        """Enter EDITOR mode:
 Full control over game world"""
         if self.user != "root":
             print("\033[91mAccess Denied\033[0m")
@@ -243,7 +245,7 @@ Full control over game world"""
 
     def do_su(self, line):
         """Switch User
-For now this simply changes the "username"..."""
+For now this simply changes the username..."""
         print("Switching user")
         newu = line.split(" ")[0]
         self.__init__(newu)
@@ -257,5 +259,5 @@ For now this simply changes the "username"..."""
 try:
     sbMain().cmdloop()
 except KeyboardInterrupt:
-    print("")
+    print("\nStarBox Vaporized")
     pass
