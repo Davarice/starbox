@@ -1,3 +1,4 @@
+print("    Loading Celestial Objects...")
 import collections
 import astropy
 from astropy import constants as c
@@ -296,14 +297,12 @@ class Galaxy(Grouping):
 
     def __init__(self, name, parent=None, # Identity information
                  posPhi=0, posRho=0, mapCoords="", # Physical information
-                 ruler=None, space=None, rank=1): # Social information
+                 ruler=None, space=None, rank=1, time=0): # Social information
         super().__init__(name=name, ruler=ruler)
         self.parent = parent # OBJ: Object around which this body orbits
-        self.posPhi = posPhi
-        self.posRho = posRho
-        self.mapCoords = mapCoords
         self.core = [] # Massive objects at the core of the galaxy; Typically supermassive black holes
         self.bodySubtype = "Galaxy"
+        self.TIME = time
 
         self.ruler = ruler
 
@@ -515,6 +514,6 @@ class Belt(Grouping):
 
 
 
-
+print("     Celestial Objects Loaded")
 
 

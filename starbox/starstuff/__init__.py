@@ -1,6 +1,7 @@
 """
 ### STARSTUFF INIT ###
 """
+print("  Loading StarStuff...")
 from . import celestial, vehicle, weaponry
 
 __all__ = ["generate"]
@@ -64,7 +65,8 @@ def generate():
     mw.subAssign(genBC())
     return mw
 
+#class Generator:
 
 
 
-
+print("   StarStuff Initialized")

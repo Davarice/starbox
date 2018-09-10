@@ -1,12 +1,18 @@
 print("Loading StarBox...")
+print("Importing core modules...")
 import cmd, sys, re
+print(" Core modules imported")
 
-import collections
-import astropy
-from astropy import constants as c
-from astropy import units as u
+#print("Importing secondary modules...")
+#import collections
+#import astropy
+#from astropy import constants as c
+#from astropy import units as u
+#print(" Secondary modules imported")
 
+print("Importing primary functions...")
 import starbox
+print(" Primary functions imported")
 
 """
 MAIN USER INTERFACE MODULE
@@ -23,7 +29,10 @@ Utility functions imminently below
 """
 
 space = starbox.starstuff.generate() # TODO: replace these two lines with a load function
-gst = 24568178.5
+try:
+    gst = space.TIME
+except:
+    gst = 24568125
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
@@ -66,7 +75,7 @@ def PathToLoc(box, path, loc=None):
 
 class sbox(cmd.Cmd):
     host = "StarBox.core"
-    intro = "StarBox loaded. For help: '?'"
+    intro = "StarBox fully initialized. For help: 'help' or '?'"
     farewell = "StarBox powering down...\nRemoving all sapients...\nVirtual universe purged.\nInterface closing."
     root = space
     promptColor = "\033[95m"
@@ -151,6 +160,7 @@ class sbWep(sbox):
     Weaponry context, for configuration of small arms
     """
     host = "StarBox.wepn"
+    intro = "WEAPONRY subcontext loaded."
     promptColor = "\033[93m" # Yellow prompt for weapons mode
     farewell = "Weaponry mode closing..."
 
@@ -163,6 +173,7 @@ class sbVeh(sbox):
     Vehicle context, for configuration of surface craft and voidcraft
     """
     host = "StarBox.vhcl"
+    intro = "VEHICLULAR subcontext loaded."
     promptColor = "\033[96m" # Cyan prompt for vehicular mode
     farewell = "Vehicular mode closing..."
 
@@ -175,6 +186,7 @@ class sbEDIT(sbox):
     World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
     """
     host = "StarBox.EDIT"
+    intro = "\033[91mEDITOR\033[0m subcontext loaded."
     promptColor = "\033[91m" # RED prompt for VERY DANGEROUS mode
     farewell = "EDITOR mode closing..."
 
