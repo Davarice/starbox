@@ -1,4 +1,7 @@
-from . import celestial
+"""
+### STARSTUFF INIT ###
+"""
+from . import celestial, vehicle, weaponry
 
 __all__ = ["generate"]
 

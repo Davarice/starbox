@@ -22,7 +22,7 @@ Subsequent subclasses are invoked for specific contexts (including the default c
 Utility functions imminently below
 """
 
-space = starbox.generators.generate() # TODO: replace these two lines with a load function
+space = starbox.starstuff.generate() # TODO: replace these two lines with a load function
 gst = 24568178.5
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "

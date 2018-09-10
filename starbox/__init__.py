@@ -1,1 +1,6 @@
-from . import celestial, spaceturtle, generators
+"""
+### STARBOX INIT ###
+"""
+
+from . import starstuff#, utils
+from .utils import *
