@@ -7,8 +7,9 @@ import random as r
 ### TODO ###
 Stub module for WEAPON classes
 """
-
+#==============#
 ## COMPONENTS ##
+#==============#
 class Component:
     def __init__(self, qual=0, damage=0):
         self.level = qual
@@ -22,8 +23,8 @@ class Component:
 
 ## PLASMA COMPONENTS ##
 class Cylinder(Component):
-    # The attribute that determines what "slot" of a weapon this component occupies
-    slot = "" # (This one is blank because this component has specific variants for pistols vs rifles)
+    slot = "" # The attribute that determines what "slot" of a weapon this component occupies
+    # (This one is blank because this component has specific variants for pistols vs rifles)
 
     def __init__(self, qual=0, damage=0):
         super().__init__(qual,damage)
@@ -38,8 +39,8 @@ class Cylinder(Component):
 
     def spin(self):
         self.fillWithAir()
-        for i in range(1,r.randint(6,36)):
-            self.contents.append(self.contents.pop(0))
+        for i in range(1,r.randint(10,50)): # For a random number of times...
+            self.contents.append(self.contents.pop(0)) # ...Move the first item to the end
         print("The cylinder spins...")
 
     def load(self,ammo):
@@ -94,7 +95,9 @@ class Containment(Component):
 
 
 
+#========#
 ## GUNS ##
+#========#
 class Firearm:
     def __init__(self):
         self.parts = {}
@@ -118,8 +121,8 @@ class gunPlasma(Firearm):
                             "grip","barrel","receiver"]
         for slot in self.partsNeeded: # Initialize an empty weapon frame
             self.parts.update({slot:None})
-        self.parts.update(inputGun) # 
-        for comp in inputParts:
+        self.parts.update(inputGun) # If an existing gun has been supplied, put all its parts onto this one
+        for comp in inputParts: # And finally, if any loose parts have been supplied, try to install them
             self.install(comp)
 
     def fire(self,target=None):
