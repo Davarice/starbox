@@ -28,7 +28,7 @@ Subsequent subclasses are invoked for specific contexts (including the default c
 Utility functions imminently below
 """
 
-space = starbox.starstuff.generate() # TODO: replace these two lines with a load function
+space = starbox.starstuff.generate() # TODO: replace these lines with a load function
 try:
     gst = space.TIME
 except:
@@ -37,6 +37,8 @@ except:
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
 def LocToPath(loc):
+    if loc == None:
+        return "~/"
     tloc = loc
     npath = ""
     while tloc != None:
@@ -73,7 +75,8 @@ def PathToLoc(box, path, loc=None):
     return loc
 
 
-class sbox(cmd.Cmd):
+# Core functions for ALL StarBox contexts
+class sbCORE(cmd.Cmd):
     host = "StarBox.core"
     intro = "StarBox fully initialized. For help: 'help' or '?'"
     farewell = "StarBox powering down...\nRemoving all sapients...\nVirtual universe purged.\nInterface closing."
@@ -88,6 +91,33 @@ class sbox(cmd.Cmd):
 
     def interject(self, content, resume=""):
         self.stdout.write(f"\n{content}\n{self.prompt}{resume}")
+
+    def default(self, line):
+        if "EOF" in line:
+            print("")
+            return self.do_exit(line)
+        print(f"ERROR: Command '{line.split()[0]}' unknown")
+
+    def complete_none(self, text, line, begidx, endidx):
+        return []
+
+    def do_exit(self, line):
+        """Close current context and return to outer shell, if any"""
+        print(f"{self.farewell}")
+        return True
+
+    complete_exit = complete_none
+
+    def emptyline(self):
+        pass
+
+    def refreshPrompt(self):
+        self.path = LocToPath(self.loc)
+        self.prompt = _PromptString.format(c=self.promptColor, u=self.user.lower(), h=self.host, p=self.path)
+
+
+# Navigational functions for space-oriented contexts
+class sbNav(sbCORE):
 
     ## Autocomplete using available options from the world
     def completePATHING(self, text, line, begidx, endidx):
@@ -110,9 +140,8 @@ class sbox(cmd.Cmd):
         return
 
     complete_cd = completePATHING
-
-    def complete_none(self, text, line, begidx, endidx):
-        return []
+    complete_ls = completePATHING
+    complete_info = completePATHING
 
     def do_ls(self, line):
         """Print the accessible sublocations of the selected location"""
@@ -121,30 +150,6 @@ class sbox(cmd.Cmd):
             print(loc.subList())
         except AttributeError as e:
             print("Error: Selected location ({}) has no sublocations ({})".format(loc, e))
-
-    complete_ls = completePATHING
-
-    complete_info = completePATHING
-
-    def default(self, line):
-        if "EOF" in line:
-            print("")
-            return self.do_exit(line)
-        print(f"ERROR: Command '{line.split()[0]}' unknown")
-
-    def do_exit(self, line):
-        """Close current context and return to outer shell, if any"""
-        print(f"{self.farewell}")
-        return True
-
-    complete_exit = complete_none
-
-    def emptyline(self):
-        pass
-
-    def refreshPrompt(self):
-        self.path = LocToPath(self.loc)
-        self.prompt = _PromptString.format(c=self.promptColor, u=self.user.lower(), h=self.host, p=self.path)
 
 
 """
@@ -155,7 +160,25 @@ From this point on, contextual commands only
 """
 
 
-class sbWep(sbox):
+class sbEditorInterface(sbCORE):
+    """
+    Direct editing mode
+    """
+    host = "StarBox.wepn.intr"
+    intro = None
+    promptColor = "\033[91m" # Red prompt for slightly dangerous mode
+    farewell = None
+
+    def __init__(self, parent, loc):
+        super().__init__()
+        self.user = user
+        self.loc = None
+        self.refreshPrompt()
+
+
+
+
+class sbWep(sbNav):
     """
     Weaponry context, for configuration of small arms
     """
@@ -168,7 +191,7 @@ class sbWep(sbox):
 
 
 
-class sbVeh(sbox):
+class sbVeh(sbNav):
     """
     Vehicle context, for configuration of surface craft and voidcraft
     """
@@ -181,7 +204,7 @@ class sbVeh(sbox):
 
 
 
-class sbEDIT(sbox):
+class sbEDIT(sbNav):
     """
     World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
     """
@@ -194,7 +217,7 @@ class sbEDIT(sbox):
 
 
 
-class sbMain(sbox):
+class sbMain(sbNav):
     """
     "Basic" context, contains navigation and identity tools
     """
@@ -218,7 +241,7 @@ class sbMain(sbox):
         """Info: Print information about the selected location"""
         try:
             loc = PathToLoc(self, line)
-            starbox.spaceturtle.DrawMap(loc)
+            starbox.utils.spaceturtle.DrawMap(loc)
             print(loc.printData())
         except:
             print("Selected location ({}) is boring".format(loc))
