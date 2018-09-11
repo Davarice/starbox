@@ -24,10 +24,14 @@ bodyRank: Hierarchy of mass of celestials
     5: Planetary grandchild (Orbital vessel around a moon)
 
 """
+u.earthMass2015 = u.def_unit("earthMass2015", c.iau2015.M_earth)
+M_e = u.earthMass2015 # Earth masses: Mass unit used by typical planets
 
-M_e = c.iau2015.M_earth # Earth masses: Mass unit used by typical planets
-M_j = c.iau2015.M_jup # Jovian masses: Mass unit used by gas giants and small stars
-M_s = c.iau2015.M_sun # Solar masses: Mass unit used by stars
+u.jupiterMass2015 = u.def_unit("jupiterMass2015", c.iau2015.M_jup)
+M_j = u.jupiterMass2015 # Jovian masses: Mass unit used by gas giants and small stars
+
+u.solMass2015 = u.def_unit("solMass2015", c.iau2015.M_sun)
+M_s = u.solMass2015 # Solar masses: Mass unit used by stars
 
 def findLargestProportion(din,flavor=False):
     dsort = [(k, din[k]) for k in sorted(din, key=din.get, reverse=True)]
@@ -35,6 +39,7 @@ def findLargestProportion(din,flavor=False):
 
 
 ### Superclasses:
+print("      Initializing superclasses...")
 
 class Body:
     """
@@ -150,6 +155,8 @@ class Grouping:
 
 
 
+print("       Superclasses loaded")
+print("      Initializing primary classes...")
 ### Primary Classes:
 ## Body-type
 
@@ -286,6 +293,8 @@ class Minor(Body):
 
 
 
+print("       Primary classes loaded")
+print("      Initializing organizational classes...")
 ## Grouping-type
 
 class Galaxy(Grouping):
@@ -512,8 +521,9 @@ class Belt(Grouping):
 
 
 
+print("       Organizational classes loaded")
 
 
-print("     Celestial Objects Loaded")
+print("     All Celestial Objects Loaded")
 
 
