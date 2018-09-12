@@ -42,13 +42,11 @@ def findLargestProportion(din,flavor=False):
 print("      Initializing superclasses...")
 
 class Body:
-    """
-    Superclass for most natural celestial objects
-    """
+    """Superclass for most natural celestial objects"""
     def __init__(self, name, # Identity information
                  mass=1, # Physical information
                  ruler=None, space=None): # Social information
-        self.name = name
+        self.name = name # Common designation
         self.orbitals = [] # Natural bodies orbiting this body; Moons, rings, etc.
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
@@ -60,11 +58,13 @@ class Body:
         self.posPhi = None # Position of the body relative to its parent
         self.posRho = None # Distance from the body to its parent body
 
-        self.ruler = ruler
+        self.ruler = ruler # The governing entity, if any, with total control (military or political) over this body
         self.sites = [] # Locations on the surface of the world, synthetic or geographical
         self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
 
     def system(self):
+        """Try to find the top level object this is within.
+Basically just pass it upwards until meeting a System class, which will send itself all the way back down."""
         try:
             return self.parent.system()
         except AttributeError:
@@ -91,6 +91,31 @@ class Body:
             n += 1
         return oput
 
+    def describe(self):
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.
+If the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.
+THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
+        return self.bodySubtype.format(c=self.composition)
+
+    def printData(self):
+        oput = f"{self.name} is a {self.describe()} in the {self.system().name} system.\n"
+        oput = oput + self.__doc__
+        if self.parent != None:
+            oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}."
+        if len(self.sites) > 0:
+            oput = oput + f"\nThe following points of interest can be found on its surface:"
+            for obj in self.sites:
+                oput = oput + f"\n  :{obj.timeline()}"
+        if len(self.orbitals) > 0:
+            oput = oput + f"\nIt has the following natural bodies in orbit:"
+            for obj in self.orbitals:
+                oput = oput + f"\n  -The {obj.describe()}, {obj.name}"
+        if len(self.satellites) > 0:
+            oput = oput + f"\nIt has the following synthetic structures in orbit:"
+            for obj in self.satellites:
+                oput = oput + f"\n  -The {obj.utility} {obj.bodyType}, {obj.name}"
+        return oput
+
     def subAssign(self, childNew):
         try:
             self.orbitals.append(childNew)
@@ -102,9 +127,7 @@ class Body:
 
 
 class Grouping:
-    """
-    Superclass for organizational entities such as star clusters and debris fields
-    """
+    """Superclass for organizational entities such as star clusters and debris fields"""
     def __init__(self, name, # Identity information
                  ruler=None, space=None): # Social information
         self.name = name
@@ -119,10 +142,32 @@ class Grouping:
         self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
 
     def system(self):
+        """Try to find the top level object this is within.
+Basically just pass it upwards until meeting a System class, which will send itself all the way back down."""
         try:
             return self.parent.system()
         except AttributeError:
             return None
+
+    def describe(self):
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Star System, or a Dwarf Galaxy, or an Asteroid Field, etc.
+Unlike for Bodies, the Grouping version of this may need explicit definition for every subclass."""
+        return self.bodySubtype
+
+    def printData(self):
+        oput = f"{self.name} is a {self.describe()} in the {self.system().name} system.\n"
+        oput = oput + self.__doc__
+        if self.parent != None:
+            oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}."
+        if len(self.orbitals) > 0:
+            oput = oput + f"\nIt has the following natural bodies in orbit:"
+            for obj in self.orbitals:
+                oput = oput + f"\n  -The {obj.describe()}, {obj.name}"
+        if len(self.satellites) > 0:
+            oput = oput + f"\nIt has the following synthetic structures in orbit:"
+            for obj in self.satellites:
+                oput = oput + f"\n  -The {obj.utility} {obj.bodyType}, {obj.name}"
+        return oput
 
     def getSubs(self, par=True, nat=True, syn=True):
         lnat = self.orbitals
@@ -161,13 +206,8 @@ print("      Initializing primary classes...")
 ## Body-type
 
 class Planet(Body):
-    """
-    Planet: Most ubiquitous celestial body
-    name, str: Common designation
-    parent, obj: The object around which this body orbits; If None, planet is Rogue
-    composition, str: Type of planet (Rock, ice, gas).
-    ruler, obj: The governing entity, if any, with total control over this body
-    """
+    """Planet: Most ubiquitous celestial body.
+A planet is massive enough to be rounded by its own gravity, is not massive enough to cause thermonuclear fusion, and has cleared its neighbouring region of planetesimals. (from Wikipedia)"""
     bodyType = "Planet"
     bodySubtype = "Planet"
     massUnit = M_e
@@ -177,8 +217,8 @@ class Planet(Body):
                  ruler=None, space=None, dayLength=24): # Social information
         super().__init__(name=name, mass=mass, ruler=ruler)
         #self.name = name
-        self.parent = parent
-        self.composition = composition
+        self.parent = parent # The object around which this body orbits; If None, planet is Rogue
+        self.composition = composition # Type of planet (rock, ice, gas, etc).
         self.orbitals = [] # Natural bodies orbiting this body; Typically another planet
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
@@ -200,17 +240,17 @@ class Planet(Body):
         return f"{self.name} ({self.composition} {self.bodySubtype})"
 
 class GiantPlanet(Planet):
-    bodySubtype = "Giant"
+    """A planet of such mass that it justifies use of a unique unit."""
+    bodySubtype = "{c} Giant"
     massUnit = M_j
 
 class DwarfPlanet(Planet):
+    """A planet which is massive enough to be spherical under its own gravity, but which has not managed to clear its orbital path."""
     bodySubtype = "Dwarf Planet"
 
 
 class Star(Body):
-    """
-    Star: Standard, very bright, celestial body; Core of most Systems
-    """
+    """A standard, normally very bright, celestial body; Found in the core of most Systems."""
     bodyType = "Star"
     bodySubtype = "Star"
     massUnit = M_s
@@ -263,14 +303,14 @@ class Star(Body):
         return f"{self.name} (Class {self.stellarClass} {self.bodySubtype})"
 
 class BlackHole(Star):
+    """A Black Hole is a Star which has exhausted its fuel and cooled to the point that its radius contracts gravitationally to within its Schwarzschild radius.
+Escape velocity at its "surface", now called the event horizon, exceeds the speed of information."""
     bodySubtype = "Black Hole"
 
 
 class Minor(Body):
-    """
-    Minor: An object too small to be gravitationally spherical
-    Asteroids, meteors, comets, etc.
-    """
+    """Minor: An object too small to be gravitationally spherical
+    Asteroids, meteors, comets, etc."""
     massUnit = u.kg
     bodyType = "Minor"
 
@@ -298,10 +338,10 @@ print("      Initializing organizational classes...")
 ## Grouping-type
 
 class Galaxy(Grouping):
-    """
-    System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
-    Represents a significant gravitational point, and is composed of a core as well as orbitals
-    """
+    """A Galaxy is a grouping of stars, nebulae, dust, and other very massive objects, in orbit of a supermassive object, typically a supermassive black hole or a quasar.
+Like a System, a Galaxy is comprised of a core group and a group of orbitals, where the orbitals may be empty but the core cannot be.
+However, a Galaxy is so large in scale that while an incomplete System is a clerical error, an incomplete Galaxy more readily indicates the maintenance of sanity.
+A Galaxy is typically used simply to encompass multiple Systems in a semblance of an organized manner."""
     bodyType = "Galaxy"
 
     def __init__(self, name, parent=None, # Identity information
@@ -358,17 +398,13 @@ class Galaxy(Grouping):
         except AttributeError:
             pass
 
-    def __dict__(self):
-        return {"heads" : self.core, "bodies" : self.orbitals}
-
     def __str__(self):
         return f"{self.name} ({self.bodySubtype})"
 
 class System(Grouping):
-    """
-    System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
-    Represents a significant gravitational point, and is composed of a core as well as orbitals
-    """
+    """System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
+Represents a significant gravitational point, and is composed of a core group and a set of orbitals
+    While unlikely (for stars), a system may have no orbitals. A system with no core objects, however, is a clerical error."""
     bodyType = "System"
 
     def __init__(self, name, parent=None, # Identity information
@@ -455,20 +491,15 @@ class System(Grouping):
         except AttributeError:
             pass
 
-    def __dict__(self):
-        return {"heads" : self.core, "bodies" : self.orbitals}
-
     def __str__(self):
         self.refreshType()
         return f"{self.name} ({self.bodySubtype})"
 
 class Belt(Grouping):
-    """
-    Belt: A region of debris in orbit around a body, forming a ring
+    """Belt: A region of debris in orbit around a body, forming a ring
     A belt has a Rho, but no Phi, because it exists at every value of Phi
     Unlike a System, a belt represents a disparate cloud of abstract objects rather than a single point
-    As such, orbitals of a Belt represent objects found within the Belt, rather than in orbit of it
-    """
+    As such, "orbitals" of a Belt represent objects found within the Belt, rather than in orbit of it"""
     bodyType = "Belt"
 
     def __init__(self, name, parent=None, # Identity information

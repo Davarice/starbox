@@ -6,7 +6,7 @@ To Galahir950 / Ryan, a creator
 
 """
 print("  Loading StarStuff...")
-from . import celestial, vehicle, weaponry
+from . import celestial, vehicle, weaponry, world
 
 __all__ = ["generate"]
 
