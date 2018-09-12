@@ -1,4 +1,4 @@
-print("    Loading Vehicles...")
+print("    Loading Vehicles...", end='')
 import collections
 import astropy
 from astropy import constants as c
@@ -10,4 +10,4 @@ Stub module for VEHICLE classes
 """
 
 
-print("     Vehicles Loaded")
+print("Done")

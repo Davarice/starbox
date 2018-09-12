@@ -1,7 +1,7 @@
 print("Loading StarBox...")
-print("Importing system modules...")
+print("Importing system modules...", end='')
 import cmd, sys, re
-print(" System modules imported")
+print("Done")
 
 print("Importing core modules...")
 import starbox

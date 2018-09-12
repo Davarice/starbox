@@ -1,4 +1,4 @@
-print("    Loading StarIO...")
+print("    Loading StarIO...", end='')
 import pickle,sys
 
 """
@@ -15,4 +15,4 @@ def save(obj):
 
 
 
-print("     StarIO Loaded")
+print("Done")

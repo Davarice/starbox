@@ -1,4 +1,4 @@
-print("    Loading SpaceTurtle...")
+print("    Loading SpaceTurtle...", end='')
 import astropy
 from astropy import constants as c
 from astropy import units as u
@@ -16,4 +16,4 @@ def DrawMap(cel, doInit=True):
     #turtle.hideturtle()
     
 
-print("     SpaceTurtle Loaded")
+print("Done")

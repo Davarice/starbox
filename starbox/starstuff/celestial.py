@@ -1,4 +1,4 @@
-print("    Loading Celestial Objects...")
+print("    Loading Celestial Objects...", end='')
 import collections
 import astropy
 from astropy import constants as c
@@ -39,7 +39,7 @@ def findLargestProportion(din,flavor=False):
 
 
 ### Superclasses:
-print("      Initializing superclasses...")
+#print("      Initializing superclasses...")
 
 class Body:
     """Superclass for most natural celestial objects"""
@@ -200,8 +200,8 @@ Unlike for Bodies, the Grouping version of this may need explicit definition for
 
 
 
-print("       Superclasses loaded")
-print("      Initializing primary classes...")
+#print("       Superclasses loaded")
+#print("      Initializing primary classes...")
 ### Primary Classes:
 ## Body-type
 
@@ -333,8 +333,8 @@ class Minor(Body):
 
 
 
-print("       Primary classes loaded")
-print("      Initializing organizational classes...")
+#print("       Primary classes loaded")
+#print("      Initializing organizational classes...")
 ## Grouping-type
 
 class Galaxy(Grouping):
@@ -552,9 +552,9 @@ class Belt(Grouping):
 
 
 
-print("       Organizational classes loaded")
+#print("       Organizational classes loaded")
 
 
-print("     All Celestial Objects Loaded")
+print("Done")
 
 
