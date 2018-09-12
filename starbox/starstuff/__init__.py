@@ -1,5 +1,9 @@
 """
 ### STARSTUFF INIT ###
+
+To Galahir950 / Ryan, a creator
+# MEMENTO MORI ERGO FABRICATO #
+
 """
 print("  Loading StarStuff...")
 from . import celestial, vehicle, weaponry
