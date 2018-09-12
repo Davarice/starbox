@@ -1,3 +1,19 @@
+### StarBox-Specific:
+
+.directory
+# Ignore the file that I use to control display settings
+
+*.eps
+# Ignore the image outputs of SpaceTurtle, these do not need tracking
+
+*.pkl
+# Ignore pickles
+
+!milkyway.pkl
+# ...EXCEPT the pickle of the test galaxy
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -24,7 +40,6 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-.directory
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -47,7 +62,6 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-*.eps
 
 # Translations
 *.mo
