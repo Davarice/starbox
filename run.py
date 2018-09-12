@@ -1,18 +1,11 @@
 print("Loading StarBox...")
-print("Importing core modules...")
+print("Importing system modules...")
 import cmd, sys, re
-print(" Core modules imported")
+print(" System modules imported")
 
-#print("Importing secondary modules...")
-#import collections
-#import astropy
-#from astropy import constants as c
-#from astropy import units as u
-#print(" Secondary modules imported")
-
-print("Importing primary functions...")
+print("Importing core modules...")
 import starbox
-print(" Primary functions imported")
+print(" Core modules imported")
 
 """
 MAIN USER INTERFACE MODULE
@@ -29,10 +22,13 @@ Utility functions imminently below
 """
 
 space = starbox.starstuff.generate() # TODO: replace these lines with a load function
+#space = starbox.utils.stario.load("MilkyWay")
 try:
     gst = space.TIME
 except:
     gst = 24568125
+
+print("Finalizing...")
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
@@ -204,29 +200,17 @@ class sbVeh(sbNav):
 
 
 
-class sbEDIT(sbNav):
-    """
-    World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
-    """
-    host = "StarBox.EDIT"
-    intro = "\033[91mEDITOR\033[0m subcontext loaded."
-    promptColor = "\033[91m" # RED prompt for VERY DANGEROUS mode
-    farewell = "EDITOR mode closing..."
-
-
-
-
-
 class sbMain(sbNav):
     """
     "Basic" context, contains navigation and identity tools
     """
     host = "StarBox.main"
 
-    #def postcmd(self, stop, line):
+    def postcmd(self, stop, line):
         #if stop != True:
             #print(f"\033[33mCurrent Time: {gst}\033[0m")
-        #return stop
+        self.refreshPrompt()
+        return stop
 
     def do_cd(self, line):
         """Change Directory: Navigate the viewer to a numeric destination
@@ -245,6 +229,23 @@ class sbMain(sbNav):
             print(loc.printData())
         except:
             print("Selected location ({}) is boring".format(loc))
+
+    def do_load(self, line):
+        """Info: Print information about the selected location"""
+        try:
+            imp = starbox.utils.stario.load(line)
+            gst = imp.TIME
+            space = imp
+            self.root = space
+            self.loc = space
+        except FileNotFoundError:
+            print("Failed to load '{}': Saved instance does not exist.".format(line))
+        except TypeError:
+            print("Failed to load '{}': Saved instance may be corrupted.".format(line))
+        except Exception as e:
+            print("Failed to load '{}': {}".format(line, e))
+        else:
+            print("Saved world loaded.")
 
     #def help_navigation(self, line):
         #print("")
@@ -290,6 +291,25 @@ For now this simply changes the username..."""
             print("")
             return #self.do_exit(line) # In MAIN context, do not allow Ctrl-D exiting
         print(f"ERROR: Command '{line.split()[0]}' unknown")
+
+
+
+
+
+class sbEDIT(sbMain):
+    """
+    World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
+    """
+    host = "StarBox.EDIT"
+    intro = "\033[91mEDITOR\033[0m subcontext loaded."
+    promptColor = "\033[91m" # RED prompt for VERY DANGEROUS mode
+    farewell = "EDITOR mode closing..."
+
+
+
+
+
+
 
 try:
     sbMain().cmdloop()
