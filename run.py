@@ -1,13 +1,14 @@
 print("Loading StarBox...")
 print("Importing system modules...", end='')
 import cmd, sys, re
+from multiprocessing import Process as mproc
 print("Done")
 
 print("Importing core modules...")
 import starbox
 import timegem
 
-CLOCK_ = timegem.Clock() # Generate a universal clock
+CLOCK_ = timegem.Clock(24568125) # Generate a universal clock
 
 # Assign the universal clock to any classes that need to access it
 starbox.starstuff.world.Site.Clock = CLOCK_
@@ -36,6 +37,7 @@ from astropy import units as u
 
 space = starbox.starstuff.generate() # TODO: replace these lines with a load function
 #space = starbox.utils.stario.load("MilkyWay")
+CLOCK_.update(space)
 try:
     gst = space.TIME
 except:
@@ -242,14 +244,37 @@ class sbMain(sbNav):
         self.refreshPrompt()
 
     def do_info(self, line):
-        """Info: Print information about the selected location"""
+        """Info: Print information about the selected location.
+Syntax: 'info [L] [Z] [X] [Y]'
+    L: The hierarchy path to examine.
+        Default: Current Location
+    Z: Zoom coefficient; Increase the distance between objects on the display.
+        Default: 1"""
         #try:
             #loc = PathToLoc(self, line)
             #print(loc.printData())
             #starbox.utils.spaceturtle.DrawMap(loc)
         #except Exception as e:
             #print("Selected location ({}) is boring [{}]".format(loc,e))
-        loc = PathToLoc(self, line)
+        spline = line.split(" ")
+        loc = PathToLoc(self, spline[0])
+        zoom = 1
+        try:
+            if zoom > 0:
+                zoom = int(spline[1])
+        except:
+            pass
+        xoff = 0
+        try:
+            xoff = int(spline[2])
+        except:
+            pass
+        yoff = 0
+        try:
+            yoff = int(spline[3])
+        except:
+            pass
+        mproc(target=starbox.utils.spaceturtle.DrawMap,args=(loc,zoom,xoff,yoff,)).start()
         print(loc.printData())
 
     def do_load(self, line):

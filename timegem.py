@@ -1,4 +1,6 @@
 from starbox.starstuff.celestial import u,c
+import numpy as np
+import math
 """
 The Time Gem module slots into everything else in the StarBox and provides a single instance of a single class, which can be added to anything in the universe to let it power everything.
 
@@ -14,7 +16,20 @@ class Clock:
 
     def update(self, obj):
         """This method needs to be very flexible and adaptable...We shall see how that goes"""
-        rho = obj.PosRho
+        try:
+            for o2 in obj.orbitals:
+                try:
+                    self.update(o2)
+                except:
+                    pass
+        except:
+            pass
+        rho = obj.posRho
+        phi = obj.posPhi
+        yr = obj.lengthOrbit
+        timeIntoYear = np.mod(self.TIME,yr)
+        phiNew = (-timeIntoYear/yr)*math.pi
+        obj.posPhi = phiNew
 
     def tick(self, inc):
         fmt = type(inc)

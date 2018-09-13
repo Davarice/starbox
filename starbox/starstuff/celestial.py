@@ -1,6 +1,6 @@
 print("    Loading Celestial Objects...", end='')
 import collections
-import astropy
+import astropy, math, numpy as np
 from astropy import constants as c
 from astropy import units as u
 
@@ -43,25 +43,51 @@ def findLargestProportion(din,flavor=0):
         return dsort[0][0]
 
 
+def GetRho(obj):
+    try:
+        if obj.bodyType == "Star":
+            print("ABORT")
+            raise AttributeError
+        par = obj.parent
+        mu = par.mass * c.G
+        T = obj.lengthOrbit
+        #print(f"[{obj.name}]: T={T}, mu={mu}, G={c.G}")
+    except AttributeError:
+        obj.posRho = 0 * obj.distUnit
+        return
+    else:
+        a = np.cbrt(((np.power(T,2)*mu)/math.tau))
+        obj.posRho = a
+        #print(f"{obj.name} has a mass of {obj.mass} and orbits {obj.parent.name} at a distance of {a}")
+
+
+
+
 ### Superclasses:
 #print("      Initializing superclasses...")
 
 class Body:
     """Superclass for most natural celestial objects"""
+    distUnit = u.au
+
     def __init__(self, name, # Identity information
-                 mass=1, # Physical information
+                 mass=1, rho=1, orbit=365, # Physical information
                  ruler=None, space=None): # Social information
         self.name = name # Common designation
         self.orbitals = [] # Natural bodies orbiting this body; Moons, rings, etc.
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+
+        self.color = "#554322"
 
         # Physical characteristics
         self.mass = mass * self.massUnit # Mass of the planet
         self.radius = None # Distance from the center to the surface
 
         # Positional characteristics
-        self.posPhi = None # Position of the body relative to its parent
-        self.posRho = None # Distance from the body to its parent body
+        self.posPhi = 0 # Position of the body relative to its parent
+        self.posRho = 0 * self.distUnit # Distance from the body to its parent body
+        #self.posRho = rho * self.distUnit
+        self.lengthOrbit = orbit*24*u.hour
 
         self.ruler = ruler # The governing entity, if any, with total control (military or political) over this body
         self.sites = [] # Locations on the surface of the world, synthetic or geographical
@@ -131,6 +157,8 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
+            GetRho(self)
+            GetRho(childNew)
         except AttributeError:
             return
 
@@ -145,8 +173,10 @@ class Grouping:
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
         # Positional characteristics
-        self.posPhi = None # Position of the body relative to its parent
-        self.posRho = None # Distance from the body to its parent body
+        self.posPhi = 0 # Position of the body relative to its parent
+        #self.posRho = None # Distance from the body to its parent body
+        self.posRho = 1.2*u.au
+        self.lengthOrbit = 1*u.yr
 
         self.ruler = ruler
         self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
@@ -234,9 +264,10 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
     massUnit = M_e
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, composition="Rock", # Physical information
-                 ruler=None, space=None, dayLength=24): # Social information
-        super().__init__(name=name, mass=mass, ruler=ruler)
+                 mass=1, rho=1, orbit=365, dayLength=24, # Physical information
+                 composition="Rock",
+                 ruler=None, space=None): # Social information
+        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, ruler=ruler)
         #self.name = name
         self.parent = parent # The object around which this body orbits; If None, planet is Rogue
         self.composition = composition # Type of planet (rock, ice, gas, etc).
@@ -279,10 +310,11 @@ class Star(Body):
     def __init__(self, name, parent=None, # Identity information
                  mass=1, stellarClass=None, subtype="Main Sequence", # Physical information
                  ruler=None, space=None): # Social information
+        self.distUnit = u.lyr
         super().__init__(name=name, mass=mass, ruler=ruler)
         self.name = name # Common designation
         self.parent = parent # Object around which this body orbits OR group in which it belongs
-        #self.mass = mass * self.massUnit # Mass of the star, given in Solar Masses
+        self.mass = mass * self.massUnit # Mass of the star, given in Solar Masses
         self.stellarClass = stellarClass
         self.stellarSubtype = subtype
         self.ruler = ruler
@@ -313,10 +345,12 @@ class Star(Body):
         return lout
 
     def subAssign(self, childNew):
+        print(f"{childNew.name} asks to orbit {self.name}")
         try:
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
+            GetRho(childNew)
         except AttributeError:
             return
 
@@ -336,9 +370,10 @@ class Minor(Body):
     bodyType = "Minor"
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, composition="Rock", # Physical information
-                 ruler=None, space=None, stype="Asteroid"): # Social information
-        super().__init__(name=name, mass=mass, ruler=ruler)
+                 mass=1, rho=1, orbit=365, dayLength=24, # Physical information
+                 composition="Rock",
+                 ruler=None, space=None): # Social information
+        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, ruler=ruler)
         self.parent = parent
         self.composition = composition
         self.bodySubtype = stype
@@ -453,7 +488,7 @@ Represents a significant gravitational point, and is composed of a core group an
 
     @property
     def total(self):
-        return self.core + self.orbitals
+        return self.core #+ self.orbitals
 
     def system(self):
         return self
@@ -512,6 +547,7 @@ Represents a significant gravitational point, and is composed of a core group an
 
     def subAssign(self, childNew):
         try:
+            GetRho(childNew)
             if childNew.bodyRank > self.bodyRank:
                 self.orbitals.append(childNew)
             elif childNew.bodyRank == self.bodyRank:
@@ -567,6 +603,7 @@ class Belt(Grouping):
 
     def subAssign(self, childNew):
         try:
+            GetRho(childNew)
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1

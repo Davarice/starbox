@@ -14,36 +14,43 @@ def genSol():
     sol = celestial.System("Sol")
     s = celestial.Star("the Sun", sol)
 
-    p = celestial.Planet("Mercury", sol)
+    p = celestial.Planet("Mercury", sol, orbit=87.969)
 
-    p = celestial.Planet("Venus", sol)
+    p = celestial.Planet("Venus", sol, orbit=224.701)
 
     p = celestial.Planet("Earth", sol)
-    m = celestial.DwarfPlanet("Luna", p)
+    m = celestial.DwarfPlanet("Luna", p, orbit=28)
+    p.color = "#6ad"
+    m.color = "#aaa"
 
-    p = celestial.Planet("Mars", sol)
+    p = celestial.Planet("Mars", sol, orbit=686.971)
+    p.color = "red"
 
-    m = celestial.Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
-    c = celestial.DwarfPlanet("Ceres", m)
-    c = celestial.Minor("Vesta", m)
-    c = celestial.Minor("Pallas", m)
+    #m = celestial.Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
+    #c = celestial.DwarfPlanet("Ceres", m)
+    #c = celestial.Minor("Vesta", m)
+    #c = celestial.Minor("Pallas", m)
 
-    p = celestial.GiantPlanet("Jupiter", sol)
+    p = celestial.GiantPlanet("Jupiter", sol, orbit=4332.59)
     p.composition = "Gas"
+    p.color = "#fc8"
 
-    p = celestial.GiantPlanet("Saturn", sol)
+    p = celestial.GiantPlanet("Saturn", sol, orbit=10759.22)
     p.composition = "Gas"
-    m = celestial.Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
+    p.color = "#fc8"
+    #m = celestial.Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
 
-    p = celestial.GiantPlanet("Caelus", sol)
+    p = celestial.GiantPlanet("Caelus", sol, orbit=30688.5)
     p.composition = "Ice"
+    p.color = "#99f"
 
-    p = celestial.GiantPlanet("Neptune", sol)
+    p = celestial.GiantPlanet("Neptune", sol, orbit=60182)
     p.composition = "Ice"
+    p.color = "#55a"
 
-    m = celestial.Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
-    p = celestial.DwarfPlanet("Pluto", m)
-    p.composition = "Ice"
+    #m = celestial.Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
+    #p = celestial.DwarfPlanet("Pluto", m)
+    #p.composition = "Ice"
 
     return sol
 
@@ -66,7 +73,7 @@ def genBC():
 def generate():
     mw = celestial.Galaxy("Milky Way")
     mw.subAssign(genSol())
-    mw.subAssign(genBC())
+    #mw.subAssign(genBC())
     return mw
 
 #class Generator:
