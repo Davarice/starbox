@@ -5,6 +5,17 @@ print("Done")
 
 print("Importing core modules...")
 import starbox
+import timegem
+
+CLOCK_ = timegem.Clock() # Generate a universal clock
+
+# Assign the universal clock to any classes that need to access it
+starbox.starstuff.world.Site.Clock = CLOCK_
+#starbox.starstuff.world.Station.Clock = CLOCK_
+
+#starbox.starstuff.celestial.Body.Clock = CLOCK_
+#starbox.starstuff.celestial.Grouping.Clock = CLOCK_
+
 print(" Core modules imported")
 
 """
@@ -20,6 +31,8 @@ Subsequent subclasses are invoked for specific contexts (including the default c
 
 Utility functions imminently below
 """
+
+from astropy import units as u
 
 space = starbox.starstuff.generate() # TODO: replace these lines with a load function
 #space = starbox.utils.stario.load("MilkyWay")
@@ -82,7 +95,11 @@ class sbCORE(cmd.Cmd):
     def __init__(self, user="User"):
         super().__init__()
         self.user = user
-        self.loc = self.root
+        self.doShowTime = False
+        try:
+            self.loc = self.root
+        except:
+            self.loc = None
         self.refreshPrompt()
 
     def interject(self, content, resume=""):
@@ -106,6 +123,15 @@ class sbCORE(cmd.Cmd):
 
     def emptyline(self):
         pass
+
+    def showTime(self):
+        print(f"\033[33mCurrent Time [GST]: \033[93m{CLOCK_.TIME}\033[0m")
+
+    def postcmd(self, stop, line):
+        if stop != True and self.doShowTime == True:
+            self.showTime()
+        self.refreshPrompt()
+        return stop
 
     def refreshPrompt(self):
         self.path = LocToPath(self.loc)
@@ -193,7 +219,7 @@ class sbVeh(sbNav):
     """
     host = "StarBox.vhcl"
     intro = "VEHICLULAR subcontext loaded."
-    promptColor = "\033[96m" # Cyan prompt for vehicular mode
+    promptColor = "\033[36m" # Cyan prompt for vehicular mode
     farewell = "Vehicular mode closing..."
 
 
@@ -206,12 +232,6 @@ class sbMain(sbNav):
     """
     host = "StarBox.main"
 
-    def postcmd(self, stop, line):
-        #if stop != True:
-            #print(f"\033[33mCurrent Time: {gst}\033[0m")
-        self.refreshPrompt()
-        return stop
-
     def do_cd(self, line):
         """Change Directory: Navigate the viewer to a numeric destination
         (Numeric destinations can be found with 'ls')"""
@@ -223,15 +243,17 @@ class sbMain(sbNav):
 
     def do_info(self, line):
         """Info: Print information about the selected location"""
-        try:
-            loc = PathToLoc(self, line)
-            starbox.utils.spaceturtle.DrawMap(loc)
-            print(loc.printData())
-        except:
-            print("Selected location ({}) is boring".format(loc))
+        #try:
+            #loc = PathToLoc(self, line)
+            #print(loc.printData())
+            #starbox.utils.spaceturtle.DrawMap(loc)
+        #except Exception as e:
+            #print("Selected location ({}) is boring [{}]".format(loc,e))
+        loc = PathToLoc(self, line)
+        print(loc.printData())
 
     def do_load(self, line):
-        """Info: Print information about the selected location"""
+        """Load saved state: Initialize a universe that was previously saved to disk"""
         try:
             imp = starbox.utils.stario.load(line)
             gst = imp.TIME
@@ -297,22 +319,53 @@ For now this simply changes the username..."""
 
 
 class sbEDIT(sbMain):
-    """
+    """ # DANGER #
     World editing context. Allows MODIFICATION AND SAVING of game world. Dangerous.
-    """
+    """ # DANGER #
     host = "StarBox.EDIT"
     intro = "\033[91mEDITOR\033[0m subcontext loaded."
-    promptColor = "\033[91m" # RED prompt for VERY DANGEROUS mode
+    promptColor = "\033[31m" # RED prompt for VERY DANGEROUS mode
     farewell = "EDITOR mode closing..."
 
+    def __init__(self, user="ROOT"):
+        super().__init__(user=user)
+        self.doShowTime = True
+        self.showTime()
+        #del self.do_vehicles
+        #del self.do_vh
+        #del self.do_weaponry
+        #del self.do_wp
+
+    def do_save(self, line):
+        """Save to disk: Serialize the current universe and save it as a file."""
+        if input(f"Save '{self.root.name} ({self.root.bodyType})' to disk? It would be saved as 'data/{starbox.utils.stario.getfile(self.root.name)}'.\n(y/N) ").lower() != "y":
+            print("Cancelled.")
+            return
+        try:
+            starbox.utils.stario.save(self.root)
+        except Exception as e:
+            print("Failed to save '{}': {}".format(line, e))
+        else:
+            print("Saved world to disk.")
+
+    def do_new(self, name):
+        pass
+
+    # This power-class builds atop all the cool stuff in the sbMain, but should still exit on ctrl-D.
+    default = sbCORE.default # So we grab it from the sbCORE.
+
+    # END DANGER #
 
 
 
+sbterm = sbMain()
 
+def sbrun():
+    try:
+        sbMain().cmdloop()
+    except KeyboardInterrupt:
+        print("\nStarBox Vaporized")
+        pass
 
-
-try:
-    sbMain().cmdloop()
-except KeyboardInterrupt:
-    print("\nStarBox Vaporized")
-    pass
+if __name__ == "__main__":
+    sbrun()

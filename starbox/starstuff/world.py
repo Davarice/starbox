@@ -1,10 +1,12 @@
-print("    Loading sites...", end='')
+print("    Loading Sites...", end='')
 import collections
 from .celestial import u,c
 
 """
 ### TODO ###
 Stub module for LOCATION classes
+#SurfaceSitesAndSatellites
+/r/bandnames
 """
 
 class Site:
@@ -38,8 +40,9 @@ class Site:
         Site Time Zone
         Site Type
         Critical Features (Capital, space elevator, etc.)
-This MAY be outsourced to the Time module and externally assigned here on init."""
-        pass
+This uses the instance referenced by the _CLOCK value generated and assigned here by the top level run script.
+If the clock is not assigned, there is no way to access the universal time."""
+        return "ERROR ON {}".format(self.name)
 
     def describe(self):
         return "Generic Site"

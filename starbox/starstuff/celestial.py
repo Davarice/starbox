@@ -24,18 +24,23 @@ bodyRank: Hierarchy of mass of celestials
     5: Planetary grandchild (Orbital vessel around a moon)
 
 """
-u.earthMass2015 = u.def_unit("earthMass2015", c.iau2015.M_earth)
+u.earthMass2015 = u.def_unit("Earth Masses", c.iau2015.M_earth)
 M_e = u.earthMass2015 # Earth masses: Mass unit used by typical planets
 
-u.jupiterMass2015 = u.def_unit("jupiterMass2015", c.iau2015.M_jup)
+u.jupiterMass2015 = u.def_unit("Jovian Masses", c.iau2015.M_jup)
 M_j = u.jupiterMass2015 # Jovian masses: Mass unit used by gas giants and small stars
 
-u.solMass2015 = u.def_unit("solMass2015", c.iau2015.M_sun)
-M_s = u.solMass2015 # Solar masses: Mass unit used by stars
+u.solMass2015 = u.def_unit("Solar Masses", c.iau2015.M_sun)
+M_s = u.solMass2015 # Solar masses: Mass unit used by stars and heavier
 
-def findLargestProportion(din,flavor=False):
+def findLargestProportion(din,flavor=0):
     dsort = [(k, din[k]) for k in sorted(din, key=din.get, reverse=True)]
-    return dsort[0][0]
+    if flavor == 0:
+        return dsort[0][0]
+    elif flavor == 1:
+        return dsort[0][0]
+    else:
+        return dsort[0][0]
 
 
 ### Superclasses:
@@ -61,6 +66,10 @@ class Body:
         self.ruler = ruler # The governing entity, if any, with total control (military or political) over this body
         self.sites = [] # Locations on the surface of the world, synthetic or geographical
         self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
+
+    #def getmass(self):
+        #"""Just in case this is ever called here accidentally"""
+        #return self.mass
 
     def system(self):
         """Try to find the top level object this is within.
@@ -102,6 +111,7 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
         oput = oput + self.__doc__
         if self.parent != None:
             oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}."
+        oput = oput + f"\n  Mass: {self.mass}\n  Radius: {self.radius}\n  Controlling faction: {self.ruler}"
         if len(self.sites) > 0:
             oput = oput + f"\nThe following points of interest can be found on its surface:"
             for obj in self.sites:
@@ -141,6 +151,16 @@ class Grouping:
         self.ruler = ruler
         self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
 
+    @property
+    def mass(self):
+        mtotal = None
+        for m in self.total:
+            m2 = m.mass
+            if mtotal == None:
+                mtotal = 0*m2.unit
+            mtotal += m2
+        return mtotal
+
     def system(self):
         """Try to find the top level object this is within.
 Basically just pass it upwards until meeting a System class, which will send itself all the way back down."""
@@ -159,6 +179,7 @@ Unlike for Bodies, the Grouping version of this may need explicit definition for
         oput = oput + self.__doc__
         if self.parent != None:
             oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}."
+        oput = oput + f"\n  Mass: {self.mass.round(3)}\n  Controlling faction: {self.ruler}"
         if len(self.orbitals) > 0:
             oput = oput + f"\nIt has the following natural bodies in orbit:"
             for obj in self.orbitals:
@@ -261,7 +282,7 @@ class Star(Body):
         super().__init__(name=name, mass=mass, ruler=ruler)
         self.name = name # Common designation
         self.parent = parent # Object around which this body orbits OR group in which it belongs
-        self.mass = mass # Mass of the star, given in Solar Masses
+        #self.mass = mass * self.massUnit # Mass of the star, given in Solar Masses
         self.stellarClass = stellarClass
         self.stellarSubtype = subtype
         self.ruler = ruler
@@ -361,6 +382,10 @@ A Galaxy is typically used simply to encompass multiple Systems in a semblance o
         except AttributeError:
             pass
 
+    @property
+    def total(self):
+        return self.core + self.orbitals
+
     def system(self):
         return self
 
@@ -425,6 +450,10 @@ Represents a significant gravitational point, and is composed of a core group an
             self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
         except AttributeError:
             pass
+
+    @property
+    def total(self):
+        return self.core + self.orbitals
 
     def system(self):
         return self
@@ -523,6 +552,10 @@ class Belt(Grouping):
         else:
             self.bodySubtype = "Cloud"
 
+    @property
+    def total(self):
+        return self.orbitals + self.satellites
+
     def system(self):
         try:
             return self.parent.system()
@@ -530,7 +563,7 @@ class Belt(Grouping):
             return None
 
     def comp(self): # Calculate what the belt is "made of"
-        return findLargestProportion(self.composition,True)
+        return findLargestProportion(self.composition,2)
 
     def subAssign(self, childNew):
         try:
