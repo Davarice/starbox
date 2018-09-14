@@ -1,8 +1,8 @@
 """
 ### UTILS INIT ###
 """
-print("  Loading StarUTIL...")
+#print("  Loading StarUTIL...")
 from . import spaceturtle, stario
 
 
-print("   StarUTIL Initialized")
+#print("   StarUTIL Initialized")

@@ -37,3 +37,7 @@ class Clock:
             self.TIME = self.TIME + inc
         elif fmt == int or fmt == float:
             self.TIME = self.TIME + inc*u.hour
+
+    def __str__(self):
+        t = self.TIME
+        return(f"{int(t.value)}:{int((t.value-int(t.value))*60)}")

@@ -1,4 +1,4 @@
-print("    Loading Celestial Objects...", end='')
+#print("    Loading Celestial Objects...", end='')
 import collections
 import astropy, math, numpy as np
 from astropy import constants as c
@@ -42,19 +42,22 @@ def findLargestProportion(din,flavor=0):
     else:
         return dsort[0][0]
 
+class CelestialError(Exception):
+    """Flow control: If this shows up in the console, something that raised it was not properly completed"""
+    pass
 
 def GetRho(obj):
-    try:
+    try: # Do this block for BODIES that are NOT Stars
         if obj.bodyType == "Star":
-            print("ABORT")
-            raise AttributeError
+            raise CelestialError
         par = obj.parent
         mu = par.mass * c.G
         T = obj.lengthOrbit
         #print(f"[{obj.name}]: T={T}, mu={mu}, G={c.G}")
-    except AttributeError:
+    except CelestialError: # Do this for BODIES that are Stars
         obj.posRho = 0 * obj.distUnit
-        return
+    except AttributeError: # Do this for things that are NOT Bodies (e.g. Groupings)
+        obj.posRho = 0 * obj.distUnit
     else:
         a = np.cbrt(((np.power(T,2)*mu)/math.tau))
         obj.posRho = a
@@ -69,19 +72,21 @@ def GetRho(obj):
 class Body:
     """Superclass for most natural celestial objects"""
     distUnit = u.au
+    minSize = 2 # When rendered, objects of this type will always be at least this radius
 
     def __init__(self, name, # Identity information
-                 mass=1, rho=1, orbit=365, # Physical information
+                 mass=1, rho=1, orbit=365, radius=100, # Physical information
                  ruler=None, space=None): # Social information
         self.name = name # Common designation
         self.orbitals = [] # Natural bodies orbiting this body; Moons, rings, etc.
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
         self.color = "#554322"
+        self.localGranularity = 20
 
         # Physical characteristics
         self.mass = mass * self.massUnit # Mass of the planet
-        self.radius = None # Distance from the center to the surface
+        self.radius = radius * u.km # Distance from the center to the surface
 
         # Positional characteristics
         self.posPhi = 0 # Position of the body relative to its parent
@@ -105,12 +110,14 @@ Basically just pass it upwards until meeting a System class, which will send its
         except AttributeError:
             return None
 
-    def getSubs(self, par=True, nat=True, syn=True):
+    def getSubs(self, par=True, nat=True, syn=True, incself=False):
         lnat = self.orbitals
         lsyn = self.satellites
         lout = []
         if par:
             lout.append(self.parent)
+        if incself:
+            lout.append(self)
         if nat:
             lout = lout + lnat
         if syn:
@@ -122,7 +129,12 @@ Basically just pass it upwards until meeting a System class, which will send its
         n = 0
         oput = oput + "\n    Adjacent locations:"
         for subloc in self.getSubs():
-            oput = oput + "\n    :[\033[96m{}\033[0m] {} ({})".format(n, subloc.name, subloc.bodySubtype)
+            if subloc == self:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {} [[SELF]]".format(n, subloc.name, subloc.bodySubtype)
+            elif subloc == self.parent:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {} [[PRNT]]".format(n, subloc.name, subloc.bodySubtype)
+            else:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {}".format(n, subloc.name, subloc.bodySubtype)
             n += 1
         return oput
 
@@ -182,8 +194,19 @@ class Grouping:
         self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
 
     @property
+    def radius(self):
+        mtotal = None
+        for m in self.total:
+            m2 = m.mass
+            if mtotal == None:
+                mtotal = 0*m2.unit
+            mtotal += m2
+        return mtotal
+
+    @property
     def mass(self):
         mtotal = None
+        # Total MUST be defined PER SUBCLASS; The subclass determines which of its components contribute to total mass
         for m in self.total:
             m2 = m.mass
             if mtotal == None:
@@ -220,12 +243,14 @@ Unlike for Bodies, the Grouping version of this may need explicit definition for
                 oput = oput + f"\n  -The {obj.utility} {obj.bodyType}, {obj.name}"
         return oput
 
-    def getSubs(self, par=True, nat=True, syn=True):
+    def getSubs(self, par=True, nat=True, syn=True, incself=False):
         lnat = self.orbitals
         lsyn = self.satellites
         lout = []
         if par and self.parent != None:
             lout.append(self.parent)
+        if incself:
+            lout.append(self)
         if nat:
             lout = lout + lnat
         if syn:
@@ -237,7 +262,13 @@ Unlike for Bodies, the Grouping version of this may need explicit definition for
         n = 0
         oput = oput + "\n    Adjacent locations:"
         for subloc in self.getSubs():
-            oput = oput + "\n    :[\033[96m{}\033[0m] {}".format(n, subloc) #.name, subloc.bodySubtype)
+            if subloc == self:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {} [[SELF]]".format(n, subloc)
+            elif subloc == self.parent:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {} [[PRNT]]".format(n, subloc)
+            else:
+                oput = oput + "\n    :[\033[96m{}\033[0m] {}".format(n, subloc)
+            #oput = oput + "\n    :[\033[96m{}\033[0m] {}".format(n, subloc) #.name, subloc.bodySubtype)
             n += 1
         return oput
 
@@ -262,12 +293,13 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
     bodyType = "Planet"
     bodySubtype = "Planet"
     massUnit = M_e
+    minSize = 2 # When rendered, objects of this type will always be at least this radius
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, rho=1, orbit=365, dayLength=24, # Physical information
+                 mass=1, rho=1, orbit=365, dayLength=24, radius=100, # Physical information
                  composition="Rock",
                  ruler=None, space=None): # Social information
-        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, ruler=ruler)
+        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, radius=radius, ruler=ruler)
         #self.name = name
         self.parent = parent # The object around which this body orbits; If None, planet is Rogue
         self.composition = composition # Type of planet (rock, ice, gas, etc).
@@ -275,7 +307,6 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
 
         # Physical characteristics
-        self.radius = None # Distance from the center to the surface
         self.Gravity = 1 # Strength of surface gravity, relative to Earth
 
         # Temporal characteristics
@@ -289,16 +320,18 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
             pass
 
     def __str__(self):
-        return f"{self.name} ({self.composition} {self.bodySubtype})"
+        return f"{self.name} ({self.bodySubtype.format(c=self.composition)})"
 
 class GiantPlanet(Planet):
     """A planet of such mass that it justifies use of a unique unit."""
     bodySubtype = "{c} Giant"
     massUnit = M_j
+    minSize = 4 # When rendered, objects of this type will always be at least this radius
 
 class DwarfPlanet(Planet):
     """A planet which is massive enough to be spherical under its own gravity, but which has not managed to clear its orbital path."""
     bodySubtype = "Dwarf Planet"
+    minSize = 1 # When rendered, objects of this type will always be at least this radius
 
 
 class Star(Body):
@@ -306,12 +339,13 @@ class Star(Body):
     bodyType = "Star"
     bodySubtype = "Star"
     massUnit = M_s
+    minSize = 6 # When rendered, objects of this type will always be at least this radius
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, stellarClass=None, subtype="Main Sequence", # Physical information
+                 mass=1, radius=100, stellarClass=None, subtype="Main Sequence", # Physical information
                  ruler=None, space=None): # Social information
         self.distUnit = u.lyr
-        super().__init__(name=name, mass=mass, ruler=ruler)
+        super().__init__(name=name, mass=mass, radius=radius, ruler=ruler)
         self.name = name # Common designation
         self.parent = parent # Object around which this body orbits OR group in which it belongs
         self.mass = mass * self.massUnit # Mass of the star, given in Solar Masses
@@ -332,12 +366,20 @@ class Star(Body):
         except AttributeError:
             return None
 
-    def getSubs(self, par=True, nat=True, syn=True):
+    def describe(self):
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.
+If the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.
+THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
+        return self.bodySubtype
+
+    def getSubs(self, par=True, nat=True, syn=True, incself=True):
         lnat = self.orbitals
         lsyn = self.satellites
         lout = []
         if par:
             lout.append(self.parent)
+        if incself:
+            lout.append(self)
         if nat:
             lout = lout + lnat
         if syn:
@@ -370,10 +412,10 @@ class Minor(Body):
     bodyType = "Minor"
 
     def __init__(self, name, parent=None, # Identity information
-                 mass=1, rho=1, orbit=365, dayLength=24, # Physical information
+                 mass=1, rho=1, orbit=365, dayLength=24, radius=100, # Physical information
                  composition="Rock",
                  ruler=None, space=None): # Social information
-        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, ruler=ruler)
+        super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, radius=radius, ruler=ruler)
         self.parent = parent
         self.composition = composition
         self.bodySubtype = stype
@@ -424,13 +466,15 @@ A Galaxy is typically used simply to encompass multiple Systems in a semblance o
     def system(self):
         return self
 
-    def getSubs(self, par=True, nat=True, syn=True):
+    def getSubs(self, par=True, nat=True, syn=True, incself=True):
         lcor = self.core
         lnat = self.orbitals
         lsyn = [] #self.satellites
         lout = []
         if par and self.parent != None:
             lout.append(self.parent)
+        if incself:
+            lout.append(self)
         if nat:
             lout = lout + lcor
             lout = lout + lnat
@@ -493,13 +537,15 @@ Represents a significant gravitational point, and is composed of a core group an
     def system(self):
         return self
 
-    def getSubs(self, par=True, nat=True, syn=True):
+    def getSubs(self, par=True, nat=True, syn=True, incself=False):
         lcor = self.core
         lnat = self.orbitals
         lsyn = self.satellites
         lout = []
         if par and self.parent != None:
             lout.append(self.parent)
+        if incself:
+            lout.append(self)
         if nat:
             lout = lout + lcor
             lout = lout + lnat
@@ -519,7 +565,7 @@ Represents a significant gravitational point, and is composed of a core group an
             elif "Planet" in obj.bodyType:
                 planets += 1
             else:
-                other += 1
+                others += 1
 
         if others == 0 and planets == 0: # All items are stars
             ret = "Star " + ret
@@ -625,6 +671,6 @@ class Belt(Grouping):
 #print("       Organizational classes loaded")
 
 
-print("Done")
+#print("Done")
 
 

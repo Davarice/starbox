@@ -1,4 +1,4 @@
-print("    Loading Sites...", end='')
+#print("    Loading Sites...", end='')
 import collections
 from .celestial import u,c
 
@@ -71,4 +71,4 @@ class Station:
         return f"{self.utility} {self.bodySubtype}"
 
 
-print("Done")
+#print("Done")

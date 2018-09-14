@@ -1,14 +1,17 @@
+import colored_traceback.always
+#colored_traceback.add_hook(always=True)
 print("Loading StarBox...")
-print("Importing system modules...", end='')
+#print("Importing system modules...", end='')
 import cmd, sys, re
 from multiprocessing import Process as mproc
-print("Done")
+#print("Done")
 
-print("Importing core modules...")
+#print("Importing core modules...")
 import starbox
 import timegem
 
-CLOCK_ = timegem.Clock(24568125) # Generate a universal clock
+CLOCK_ = timegem.Clock(24568125.75) # Generate a universal clock
+starbox.utils.spaceturtle.CLOCK_ = CLOCK_
 
 # Assign the universal clock to any classes that need to access it
 starbox.starstuff.world.Site.Clock = CLOCK_
@@ -17,7 +20,7 @@ starbox.starstuff.world.Site.Clock = CLOCK_
 #starbox.starstuff.celestial.Body.Clock = CLOCK_
 #starbox.starstuff.celestial.Grouping.Clock = CLOCK_
 
-print(" Core modules imported")
+#print(" Core modules imported")
 
 """
 MAIN USER INTERFACE MODULE
@@ -33,8 +36,6 @@ Subsequent subclasses are invoked for specific contexts (including the default c
 Utility functions imminently below
 """
 
-from astropy import units as u
-
 space = starbox.starstuff.generate() # TODO: replace these lines with a load function
 #space = starbox.utils.stario.load("MilkyWay")
 CLOCK_.update(space)
@@ -43,7 +44,7 @@ try:
 except:
     gst = 24568125
 
-print("Finalizing...")
+#print("Finalizing...")
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
@@ -85,6 +86,12 @@ def PathToLoc(box, path, loc=None):
             loc = nloc
     return loc
 
+def isInt(check, alt=0):
+    try: 
+        x = int(check)
+        return x # If the value being checked can be an integer, return the integer
+    except ValueError:
+        return alt # If it cannot, return the alternative
 
 # Core functions for ALL StarBox contexts
 class sbCORE(cmd.Cmd):
@@ -243,38 +250,44 @@ class sbMain(sbNav):
             print("Error: Selected location ({}) has no sublocation [{}]".format(loc, line))
         self.refreshPrompt()
 
+    def do_gset(self, line):
+        """Change the coordinate granularity of the MAP command
+        0 to reset to default"""
+        try:
+            starbox.utils.spaceturtle.setGranularity = int(line)
+            print("Successfully adjusted")
+        except Exception as e:
+            print(f"Could not adjust! {e}")
+
+    def do_map(self, line):
+        """MAP: Print information about the selected location.
+Syntax: 'map [Z] [X] [Y]'
+    Z: Zoom coefficient; Increase the scale of objects on the display.
+        Default: 1
+    X: Horizontal offset; For panning the display East and West.
+        Default: 0
+    Y: Vertical offset; For panning the display South and North.
+        Default: 0"""
+        spline = line.split(" ") + ["","",""]
+        #loc = PathToLoc(self, spline[0])
+        loc = self.loc
+        zoom = isInt(spline[0],1)
+        xoff = isInt(spline[1],0)
+        yoff = isInt(spline[2],0)
+        mproc(target=starbox.utils.spaceturtle.DrawMap,args=(loc,zoom,xoff,yoff,)).start()
+
     def do_info(self, line):
-        """Info: Print information about the selected location.
-Syntax: 'info [L] [Z] [X] [Y]'
+        """INFO: Print information about the selected location.
+Syntax: 'info [L]'
     L: The hierarchy path to examine.
-        Default: Current Location
-    Z: Zoom coefficient; Increase the distance between objects on the display.
-        Default: 1"""
+        Default: Current Location"""
+
         #try:
             #loc = PathToLoc(self, line)
             #print(loc.printData())
-            #starbox.utils.spaceturtle.DrawMap(loc)
         #except Exception as e:
             #print("Selected location ({}) is boring [{}]".format(loc,e))
-        spline = line.split(" ")
-        loc = PathToLoc(self, spline[0])
-        zoom = 1
-        try:
-            if zoom > 0:
-                zoom = int(spline[1])
-        except:
-            pass
-        xoff = 0
-        try:
-            xoff = int(spline[2])
-        except:
-            pass
-        yoff = 0
-        try:
-            yoff = int(spline[3])
-        except:
-            pass
-        mproc(target=starbox.utils.spaceturtle.DrawMap,args=(loc,zoom,xoff,yoff,)).start()
+        loc = PathToLoc(self, line)
         print(loc.printData())
 
     def do_load(self, line):
@@ -293,6 +306,9 @@ Syntax: 'info [L] [Z] [X] [Y]'
             print("Failed to load '{}': {}".format(line, e))
         else:
             print("Saved world loaded.")
+
+    #def do_time(self, line):
+        #pass
 
     #def help_navigation(self, line):
         #print("")

@@ -1,4 +1,4 @@
-print("    Loading Small Arms...", end='')
+#print("    Loading Small Arms...", end='')
 import collections
 from .celestial import u,c
 import random as r
@@ -139,4 +139,4 @@ class gunPlasma(Firearm):
 class WeaponsRack():
     pass
 
-print("Done")
+#print("Done")
