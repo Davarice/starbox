@@ -1,6 +1,7 @@
-import colored_traceback.always
-#colored_traceback.add_hook(always=True)
+import colored_traceback.auto
+
 print("Loading StarBox...")
+
 #print("Importing system modules...", end='')
 import cmd, sys, re
 from multiprocessing import Process as mproc
@@ -47,6 +48,24 @@ except:
 #print("Finalizing...")
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
+
+def StringToTime(sl):
+    s = ""
+    for w in sl:
+        s = s + w.lower()
+    t = 0 * timegem.u.hour
+
+    comp = re.findall(r'\d*:\d{2}', s)
+    hour = re.findall(r'\d+(?=(?:h))', s)
+    mins = re.findall(r'\d+(?=(?:m))', s)
+
+    for c in comp:
+        c2 = c.split(":")
+    for h in hour:
+        t = t+float(h)*timegem.u.hour
+    for m in mins:
+        t = t+float(m)*timegem.u.minute
+    return str(comp), str(hour), str(mins), t
 
 def LocToPath(loc):
     if loc == None:
@@ -259,6 +278,9 @@ class sbMain(sbNav):
         except Exception as e:
             print(f"Could not adjust! {e}")
 
+    def do_mapload(self, line):
+        mproc(target=starbox.utils.spaceturtle.DrawNothing).start()
+
     def do_map(self, line):
         """MAP: Print information about the selected location.
 Syntax: 'map [Z] [X] [Y]'
@@ -271,10 +293,34 @@ Syntax: 'map [Z] [X] [Y]'
         spline = line.split(" ") + ["","",""]
         #loc = PathToLoc(self, spline[0])
         loc = self.loc
+        CLOCK_.update(loc)
         zoom = isInt(spline[0],1)
         xoff = isInt(spline[1],0)
         yoff = isInt(spline[2],0)
         mproc(target=starbox.utils.spaceturtle.DrawMap,args=(loc,zoom,xoff,yoff,)).start()
+
+    def do_time(self, line):
+        full = line.lower().split(" ")
+        subc1 = full.pop(0)
+        if subc1 == "increment":
+            print(StringToTime(full))
+        elif subc1 == "decrement":
+            print(StringToTime(full))
+        elif subc1 == "marker" and input("asdf? ") == "qwert":
+            pass
+        #elif subc1 == "":
+            #pass
+        else:
+            print(f"Unknown subcommand {subc1}")
+
+    def complete_time(self, text, line, begidx, endidx):
+        if line.strip().lower() == "time " + text:
+            ret = []
+            for possible in ["increment","decrement","marker"]:
+                if possible.startswith(text):
+                    ret.append(possible)
+            return ret
+        return
 
     def do_info(self, line):
         """INFO: Print information about the selected location.

@@ -12,7 +12,7 @@ __all__ = ["generate"]
 
 def genSol():
     sol = celestial.System("Sol")
-    s = celestial.Star("the Sun", sol, radius=695700)
+    s = celestial.Star("the Sun", sol, radius=695700, isCore=True)
     s.color = "#fc8"
     #s = celestial.BlackHole("Gargantua", sol, mass=1, radius=695700)
     #s.color = "#111111"
@@ -25,7 +25,7 @@ def genSol():
 
     p = celestial.Planet("Earth", sol, orbit=365, radius=6371)
     p.color = "#6ad"
-    m = celestial.DwarfPlanet("Luna", p, orbit=28, radius=1737.1)
+    m = celestial.DwarfPlanet("Luna", p, orbit=28, dayLength=28*24, radius=1737.1)
     m.color = "#aaa"
 
     p = celestial.Planet("Mars", sol, orbit=686.971, radius=3389.5)
@@ -49,6 +49,7 @@ def genSol():
     p.composition = "Ice"
     p.color = "#9fb0c6"
 
+    #>>> (67,-2)@50; (13422,-405)@10k
     p = celestial.GiantPlanet("Neptune", sol, orbit=60182, radius=24622)
     p.composition = "Ice"
     p.color = "#5279cc"
@@ -61,16 +62,16 @@ def genSol():
 
 def genBC():
     bc = celestial.System("Beta Cygni")
-    s1 = celestial.Star("Albireo A")
-    s2 = celestial.Star("Albireo B")
+    s1 = celestial.Star("Albireo A", bc, isCore=True)
+    s2 = celestial.Star("Albireo B", bc, isCore=True)
 
-    g = celestial.GiantPlanet("Beta Cygni I", bc)
+    g = celestial.GiantPlanet("Beta Cygni I", bc, orbit=4332.59, radius=69911)
     g.composition = "Ice"
 
-    g = celestial.GiantPlanet("Beta Cygni II", bc)
+    g = celestial.GiantPlanet("Beta Cygni II", bc, orbit=60182, radius=24622)
     g.composition = "Gas"
-    p = celestial.Planet("Beta Cygni IIa", g)
-    p = celestial.DwarfPlanet("Beta Cygni IIb", g)
+    p = celestial.Planet("Beta Cygni IIa", g, orbit=87.969, radius=2439.7)
+    p = celestial.DwarfPlanet("Beta Cygni IIb", g, orbit=107.969, radius=2439.7)
     p.composition = "Ice"
 
     return bc
@@ -78,7 +79,7 @@ def genBC():
 def generate():
     mw = celestial.Galaxy("Milky Way")
     mw.subAssign(genSol())
-    #mw.subAssign(genBC())
+    mw.subAssign(genBC())
     return mw.orbitals[0]
 
 #class Generator:

@@ -24,11 +24,9 @@ class Clock:
                     pass
         except:
             pass
-        rho = obj.posRho
-        phi = obj.posPhi
         yr = obj.lengthOrbit
         timeIntoYear = np.mod(self.TIME,yr)
-        phiNew = (-timeIntoYear/yr)*math.pi
+        phiNew = (-timeIntoYear/yr)*math.pi * u.rad
         obj.posPhi = phiNew
 
     def tick(self, inc):

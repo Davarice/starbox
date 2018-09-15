@@ -148,7 +148,15 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
         oput = f"{self.name} is a {self.describe()} in the {self.system().name} system.\n"
         oput = oput + self.__doc__
         if self.parent != None:
-            oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}."
+            oput = oput + f"\n{self.name} is in orbit around {self.parent.name}, a {self.parent.describe()}, at a distance of {self.posRho.to(u.au).round(3)}."
+            oput = oput + f"\nIt has an orbital period of {self.lengthOrbit}"
+            try:
+                if self.lengthOrbit == self.lengthRotation:
+                    oput = oput + f", and is tidally locked."
+                else:
+                    oput = oput + f", and a rotational period of {self.lengthRotation}."
+            except:
+                oput = oput + f"."
         oput = oput + f"\n  Mass: {self.mass}\n  Radius: {self.radius}\n  Controlling faction: {self.ruler}"
         if len(self.sites) > 0:
             oput = oput + f"\nThe following points of interest can be found on its surface:"
@@ -164,7 +172,7 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
                 oput = oput + f"\n  -The {obj.utility} {obj.bodyType}, {obj.name}"
         return oput
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         try:
             self.orbitals.append(childNew)
             childNew.parent = self
@@ -183,6 +191,8 @@ class Grouping:
         self.name = name
         self.orbitals = [] # Natural bodies orbiting this body; Moons, rings, etc.
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
+
+        self.localGranularity = 50
 
         # Positional characteristics
         self.posPhi = 0 # Position of the body relative to its parent
@@ -272,7 +282,7 @@ Unlike for Bodies, the Grouping version of this may need explicit definition for
             n += 1
         return oput
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         try:
             self.orbitals.append(childNew)
             childNew.parent = self
@@ -298,7 +308,7 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
     def __init__(self, name, parent=None, # Identity information
                  mass=1, rho=1, orbit=365, dayLength=24, radius=100, # Physical information
                  composition="Rock",
-                 ruler=None, space=None): # Social information
+                 ruler=None, space=None, isCore=False): # Social information
         super().__init__(name=name, mass=mass, rho=rho, orbit=orbit, radius=radius, ruler=ruler)
         #self.name = name
         self.parent = parent # The object around which this body orbits; If None, planet is Rogue
@@ -310,8 +320,8 @@ A planet is massive enough to be rounded by its own gravity, is not massive enou
         self.Gravity = 1 # Strength of surface gravity, relative to Earth
 
         # Temporal characteristics
-        self.periodRotation = dayLength # Number of hours taken to rotate
-        self.periodOrbital = None # Number of hours in a year
+        self.lengthOrbit = orbit*24*u.hour # Number of hours in a year
+        self.lengthRotation = dayLength*u.hour # Number of hours taken to rotate
 
         self.bodyRank = 3
         try:
@@ -343,7 +353,7 @@ class Star(Body):
 
     def __init__(self, name, parent=None, # Identity information
                  mass=1, radius=100, stellarClass=None, subtype="Main Sequence", # Physical information
-                 ruler=None, space=None): # Social information
+                 ruler=None, space=None, isCore=False): # Social information
         self.distUnit = u.lyr
         super().__init__(name=name, mass=mass, radius=radius, ruler=ruler)
         self.name = name # Common designation
@@ -356,7 +366,7 @@ class Star(Body):
         self.satellites = [] # Synthetic structures orbiting this body; Typically a station
         self.bodyRank = 2
         try:
-            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
+            self.parent.subAssign(self, isCore=isCore) # If the parent body has a specific method to integrate me, use it
         except AttributeError:
             pass
 
@@ -386,7 +396,7 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
             lout = lout + lsyn
         return lout
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         print(f"{childNew.name} asks to orbit {self.name}")
         try:
             self.orbitals.append(childNew)
@@ -492,13 +502,13 @@ A Galaxy is typically used simply to encompass multiple Systems in a semblance o
             oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
         return oput
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         try:
             childNew.parent = self
-            if childNew.bodyRank > self.bodyRank:
-                self.orbitals.append(childNew)
-            elif childNew.bodyRank == self.bodyRank:
+            if isCore:
                 self.core.append(childNew)
+            else:
+                self.orbitals.append(childNew)
         except AttributeError:
             pass
 
@@ -591,13 +601,14 @@ Represents a significant gravitational point, and is composed of a core group an
             oput = oput + "\n    --{} ({})".format(subloc.name, subloc.bodySubtype)
         return oput
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         try:
+            childNew.parent = self
             GetRho(childNew)
-            if childNew.bodyRank > self.bodyRank:
-                self.orbitals.append(childNew)
-            elif childNew.bodyRank == self.bodyRank:
+            if isCore:
                 self.core.append(childNew)
+            else:
+                self.orbitals.append(childNew)
             self.refreshType()
         except AttributeError:
             pass
@@ -647,7 +658,7 @@ class Belt(Grouping):
     def comp(self): # Calculate what the belt is "made of"
         return findLargestProportion(self.composition,2)
 
-    def subAssign(self, childNew):
+    def subAssign(self, childNew, isCore=False):
         try:
             GetRho(childNew)
             self.orbitals.append(childNew)
