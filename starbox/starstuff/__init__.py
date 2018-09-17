@@ -81,7 +81,7 @@ def generate():
     mw = celestial.Galaxy("Milky Way")
     mw.subAssign(genSol())
     mw.subAssign(genBC())
-    return mw.orbitals[0]
+    return mw
 
 #class Generator:
 

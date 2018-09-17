@@ -26,6 +26,11 @@ class Clock:
                         pass
             except:
                 pass
+            try:
+                if obj.Clock != self:
+                    obj.Clock = self
+            except:
+                pass
             yr = obj.lengthOrbit
             timeIntoYear = np.mod(self.TIME.to(u.hour),yr)
             phiNew = (-timeIntoYear/yr)*math.tau * u.rad

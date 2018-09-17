@@ -356,7 +356,8 @@ Syntax: 'info [L]'
         """Load saved state: Initialize a universe that was previously saved to disk"""
         try:
             imp = starbox.utils.stario.load(line)
-            CLOCK_=imp.Clock
+            CLOCK_.TIME=imp.Clock.TIME
+            CLOCK_.update(imp)
             space = imp
             self.root = space
             self.loc = space
