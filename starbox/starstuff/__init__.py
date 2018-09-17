@@ -31,10 +31,10 @@ def genSol():
     p = celestial.Planet("Mars", sol, orbit=686.971, radius=3389.5)
     p.color = "#cc734c"
 
-    #m = celestial.Belt("Inner Belt", sol, composition={"rock":50.0,"dust":50.0})
-    #c = celestial.DwarfPlanet("Ceres", m)
-    #c = celestial.Minor("Vesta", m)
-    #c = celestial.Minor("Pallas", m)
+    m = celestial.Belt("Inner Belt", sol, radius=0.5, posRho=2.7, composition={"rock":50.0,"dust":50.0})
+    c = celestial.DwarfPlanet("Ceres", m)
+    c = celestial.Minor("Vesta", m)
+    c = celestial.Minor("Pallas", m)
 
     p = celestial.GiantPlanet("Jupiter", sol, orbit=4332.59, radius=69911)
     p.composition = "Gas"
@@ -43,7 +43,7 @@ def genSol():
     p = celestial.GiantPlanet("Saturn", sol, orbit=10759.22, radius=58232)
     p.composition = "Gas"
     p.color = "#f2dea9"
-    #m = celestial.Belt("Rings of Saturn", p, composition={"ice":95.0,"rock":5.0})
+    m = celestial.Belt("Rings of Saturn", p, radius=36500, posRho=67300+36500, composition={"ice":95.0,"rock":5.0})
 
     p = celestial.GiantPlanet("Caelus", sol, orbit=30688.5, radius=25362)
     p.composition = "Ice"
@@ -54,7 +54,7 @@ def genSol():
     p.composition = "Ice"
     p.color = "#5279cc"
 
-    #m = celestial.Belt("Kuiper Belt", sol, composition={"ice":80.0,"rock":20.0})
+    #m = celestial.Belt("Kuiper Belt", sol, radius=4, posRho=44, composition={"ice":80.0,"rock":20.0})
     #p = celestial.DwarfPlanet("Pluto", m)
     #p.composition = "Ice"
 

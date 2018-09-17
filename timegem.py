@@ -12,30 +12,37 @@ class Clock:
     # Something thematic but exotic, so if it ever shows up, a dev/maintainer can tell something is not right, but an end user might not
 
     def __init__(self, time=0):
-        self.TIME = time * u.hour
+        self.TIME = time * 60 * u.minute
 
     def update(self, obj):
         """This method needs to be very flexible and adaptable...We shall see how that goes"""
         try:
-            for o2 in obj.orbitals:
-                try:
-                    self.update(o2)
-                except:
-                    pass
+            try:
+                for o2 in obj.orbitals:
+                    try:
+                        self.update(o2)
+                        #o2.Clock = self
+                    except:
+                        pass
+            except:
+                pass
+            yr = obj.lengthOrbit
+            timeIntoYear = np.mod(self.TIME.to(u.hour),yr)
+            phiNew = (-timeIntoYear/yr)*math.tau * u.rad
+            obj.posPhi = phiNew
         except:
             pass
-        yr = obj.lengthOrbit
-        timeIntoYear = np.mod(self.TIME,yr)
-        phiNew = (-timeIntoYear/yr)*math.pi * u.rad
-        obj.posPhi = phiNew
 
     def tick(self, inc):
         fmt = type(inc)
         if fmt == u.Quantity:
             self.TIME = self.TIME + inc
         elif fmt == int or fmt == float:
-            self.TIME = self.TIME + inc*u.hour
+            self.TIME = self.TIME + inc*u.minute
+
+    def toaster(self, plus=0*u.minute):
+        t = self.TIME + plus
+        return(f"{int(t.to(u.hour).value)}:{int(np.mod(t.value,60))}")
 
     def __str__(self):
-        t = self.TIME
-        return(f"{int(t.value)}:{int((t.value-int(t.value))*60)}")
+        return self.toaster()

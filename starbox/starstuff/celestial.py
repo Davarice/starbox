@@ -46,21 +46,23 @@ class CelestialError(Exception):
     """Flow control: If this shows up in the console, something that raised it was not properly completed"""
     pass
 
-def GetRho(obj):
+def GetRho(obj, par=None):
     try: # Do this block for BODIES that are NOT Stars
         if obj.bodyType == "Star":
             raise CelestialError
-        par = obj.parent
+        if par == None:
+            par = obj.parent
         mu = par.mass * c.G
         T = obj.lengthOrbit
         #print(f"[{obj.name}]: T={T}, mu={mu}, G={c.G}")
     except CelestialError: # Do this for BODIES that are Stars
         obj.posRho = 0 * obj.distUnit
     except AttributeError: # Do this for things that are NOT Bodies (e.g. Groupings)
-        obj.posRho = 0 * obj.distUnit
+        #obj.posRho = 0 * obj.distUnit
+        return
     else:
-        a = np.cbrt(((np.power(T,2)*mu)/math.tau))
-        obj.posRho = a
+        a = np.cbrt(((np.power(T,2)*mu)/(4*np.power(math.pi,2))))
+        obj.posRho = a.to(obj.distUnit)
         #print(f"{obj.name} has a mass of {obj.mass} and orbits {obj.parent.name} at a distance of {a}")
 
 
@@ -203,15 +205,15 @@ class Grouping:
         self.ruler = ruler
         self.nations = [] # Entities controlling territory in this area (Rulers of orbitals)
 
-    @property
-    def radius(self):
-        mtotal = None
-        for m in self.total:
-            m2 = m.mass
-            if mtotal == None:
-                mtotal = 0*m2.unit
-            mtotal += m2
-        return mtotal
+    #@property
+    #def radius(self):
+        #mtotal = None
+        #for m in self.total:
+            #m2 = m.mass
+            #if mtotal == None:
+                #mtotal = 0*m2.unit
+            #mtotal += m2
+        #return mtotal
 
     @property
     def mass(self):
@@ -421,7 +423,7 @@ class Minor(Body):
     massUnit = u.kg
     bodyType = "Minor"
 
-    def __init__(self, name, parent=None, # Identity information
+    def __init__(self, name, parent=None, stype="Asteroid", # Identity information
                  mass=1, rho=1, orbit=365, dayLength=24, radius=100, # Physical information
                  composition="Rock",
                  ruler=None, space=None): # Social information
@@ -454,12 +456,12 @@ A Galaxy is typically used simply to encompass multiple Systems in a semblance o
 
     def __init__(self, name, parent=None, # Identity information
                  posPhi=0, posRho=0, mapCoords="", # Physical information
-                 ruler=None, space=None, rank=1, time=0): # Social information
+                 ruler=None, space=None, rank=1, time=None): # Social information
         super().__init__(name=name, ruler=ruler)
         self.parent = parent # OBJ: Object around which this body orbits
         self.core = [] # Massive objects at the core of the galaxy; Typically supermassive black holes
         self.bodySubtype = "Galaxy"
-        self.TIME = time
+        self.Clock = time
 
         self.ruler = ruler
 
@@ -626,28 +628,37 @@ class Belt(Grouping):
 
     def __init__(self, name, parent=None, # Identity information
                  posRho=0, composition={"Rock":100.0}, # Physical information
-                 ruler=None, space=None, rank=3): # Social information
+                 ruler=None, space=None, radius=0.5): # Social information
         super().__init__(name=name, ruler=ruler)
 
         self.parent = parent # OBJ: Object around which this body orbits
-        self.composition = composition
+        self.comptable = composition
 
-        self.bodyRank = rank
+        self.bodyRank = 1
         try:
             self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
         except AttributeError:
             pass
 
+        self.distUnit = u.au
         if self.parent.bodyType == "System":
             self.bodySubtype = "Belt"
         elif self.parent.bodyType == "Planet":
-            self.bodySubtype = "Ring"
+            self.bodySubtype = "Ringsystem"
+            self.distUnit = u.km
         else:
             self.bodySubtype = "Cloud"
+
+        self.radius = radius*self.distUnit
+        self.posRho = posRho*self.distUnit
 
     @property
     def total(self):
         return self.orbitals + self.satellites
+
+    @property
+    def composition(self): # Calculate what the belt is "made of"
+        return findLargestProportion(self.comptable,2)
 
     def system(self):
         try:
@@ -655,12 +666,9 @@ class Belt(Grouping):
         except AttributeError:
             return None
 
-    def comp(self): # Calculate what the belt is "made of"
-        return findLargestProportion(self.composition,2)
-
     def subAssign(self, childNew, isCore=False):
         try:
-            GetRho(childNew)
+            GetRho(childNew, par=self.parent)
             self.orbitals.append(childNew)
             childNew.parent = self
             childNew.bodyRank = self.bodyRank + 1
@@ -668,20 +676,10 @@ class Belt(Grouping):
             pass
 
     def __str__(self):
-        return f"{self.name} ({self.comp().capitalize()} {self.bodySubtype})"
-
-
-
-
-
-
-
-
+        return f"{self.name} ({self.composition.capitalize()} {self.bodySubtype})"
 
 
 #print("       Organizational classes loaded")
-
-
 #print("Done")
 
 

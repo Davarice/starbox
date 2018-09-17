@@ -39,11 +39,8 @@ Utility functions imminently below
 
 space = starbox.starstuff.generate() # TODO: replace these lines with a load function
 #space = starbox.utils.stario.load("MilkyWay")
+space.Clock = CLOCK_
 CLOCK_.update(space)
-try:
-    gst = space.TIME
-except:
-    gst = 24568125
 
 #print("Finalizing...")
 
@@ -53,19 +50,25 @@ def StringToTime(sl):
     s = ""
     for w in sl:
         s = s + w.lower()
-    t = 0 * timegem.u.hour
+    t = 0 * timegem.u.minute
 
     comp = re.findall(r'\d*:\d{2}', s)
-    hour = re.findall(r'\d+(?=(?:h))', s)
-    mins = re.findall(r'\d+(?=(?:m))', s)
+    hour = re.findall(r'\d+(?=(?:h|hour|hr))', s)
+    mins = re.findall(r'\d+(?=(?:m|minute|min))', s)
 
     for c in comp:
         c2 = c.split(":")
+        if c2[0] == "":
+            c0 = 0*timegem.u.hour
+        else:
+            c0 = int(c2[0])*timegem.u.hour
+        c1 = int(c2[1])*timegem.u.minute
+        t = t + c0 + c1
     for h in hour:
         t = t+float(h)*timegem.u.hour
     for m in mins:
         t = t+float(m)*timegem.u.minute
-    return str(comp), str(hour), str(mins), t
+    return t
 
 def LocToPath(loc):
     if loc == None:
@@ -153,10 +156,10 @@ class sbCORE(cmd.Cmd):
         pass
 
     def showTime(self):
-        print(f"\033[33mCurrent Time [GST]: \033[93m{CLOCK_.TIME}\033[0m")
+        print(f"\033[33mCurrent Time [GST]: \033[93m{CLOCK_.toaster()}\033[0m")
 
     def postcmd(self, stop, line):
-        if stop != True and self.doShowTime == True:
+        if stop != True:# and self.doShowTime == True:
             self.showTime()
         self.refreshPrompt()
         return stop
@@ -259,6 +262,7 @@ class sbMain(sbNav):
     "Basic" context, contains navigation and identity tools
     """
     host = "StarBox.main"
+    doShowTime=True
 
     def do_cd(self, line):
         """Change Directory: Navigate the viewer to a numeric destination
@@ -303,9 +307,19 @@ Syntax: 'map [Z] [X] [Y]'
         full = line.lower().split(" ")
         subc1 = full.pop(0)
         if subc1 == "increment":
-            print(StringToTime(full))
+            t = StringToTime(full)
+            if input(f"Move time FORWARDS by {t}? New time will be {CLOCK_.toaster(plus=t)} (y/N): ").lower() == "y":
+                CLOCK_.tick(t)
+                print("Time has progressed.")
+            else:
+                print("Time remains unmoved.")
         elif subc1 == "decrement":
-            print(StringToTime(full))
+            t = StringToTime(full)
+            if input(f"Move time BACKWARDS by {t}? New time will be {CLOCK_.toaster(plus=-t)} (y/N): ").lower() == "y":
+                CLOCK_.tick(-t)
+                print("Time has regressed.")
+            else:
+                print("Time remains unmoved.")
         elif subc1 == "marker" and input("asdf? ") == "qwert":
             pass
         #elif subc1 == "":
@@ -340,7 +354,7 @@ Syntax: 'info [L]'
         """Load saved state: Initialize a universe that was previously saved to disk"""
         try:
             imp = starbox.utils.stario.load(line)
-            gst = imp.TIME
+            CLOCK_=imp.Clock
             space = imp
             self.root = space
             self.loc = space

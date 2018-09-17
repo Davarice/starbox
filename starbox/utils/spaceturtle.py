@@ -117,24 +117,34 @@ def getScale(w, h, loc):
 
     # Find the outer reaches of the system (this is an Astropy quantity)
     extent = 1*u.m
+    #print(f"\nExtent BEGINS at {extent.round(3)}.")
     if len(loc.orbitals) > 0:
-        for p in loc.orbitals:
         #for p in loc.getSubs(par=False,syn=False):
+        for p in loc.orbitals:
+            #print(f"  Checking whether {p.name} is more than {extent.round(3)} away...")
             try:
-                if p.posRho > extent:
-                    extent = p.posRho
+                trad = p.posRho + p.radius
+            except:
+                trad = p.posRho
+            try:
+                if trad > extent:
+                    #print(f"  It is. {trad.round(3)} > {extent.round(3)}.")
+                    extent = trad
+                #else:
+                    #print(f"  It is NOT. {trad.round(3)} < {extent.round(3)}.")
             except:
                 pass
     else:
         extent = loc.radius * 3
     scale = limit/extent
     scale = scale/2
+    #print(f"\nEXTENT of {loc.name} is {extent.round(3)}.\nLIMIT of screen is {limit}.\nSCALE set to {limit}/(2*{extent.round(3)}).\n(This equals {scale}.)")
     #print(f"\nSCALE: {scale} = ({limit}/{extent})/2 = {scale.si}\n")
-    return scale
+    return scale.to(1/u.au)
 
 
 def getRenderRadius(obj,s):
-    r = obj.radius*s # The actual onscreen size of the object
+    r = obj.radius.to(u.au)*s # The actual onscreen size of the object
     m = obj.minSize # The minimum size of the object according to its type
     if numpy.greater(m,r): # Return the larger of the two
         return m
@@ -152,16 +162,16 @@ def drawObject(c, x, y, r, rgb="#888"):
     y1 = y + r
     c.create_oval(x0, y0, x1, y1, outline=rgb, fill=rgb)
 
-def drawOrbit(c, O, rho, phi, rgb=colorOrbit):
+def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1):
     [x0,y0] = [O[0]-rho,O[1]-rho]
     [x1,y1] = [O[0]+rho,O[1]+rho]
-    c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=1, start=-phi.to(u.degree).value, extent=359.999999)
+    c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, start=-phi.to(u.degree).value, extent=359.999999)
 
 
-def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1):
+def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False):
     for obj in loc.orbitals:
         if obj.bodyType != "Belt":
-            rho = obj.posRho*s
+            rho = obj.posRho.to(u.au)*s
             phi = obj.posPhi
             cart = cmath.rect(rho, phi.value) # Complex number representing the X and Y of OBJ relative to LOC
 
@@ -169,16 +179,27 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1):
                 c.create_line(x, y, x+cart.real, y+cart.imag, fill=colorParentTrace)
             drawOrbit(c=c, O=[x,y], rho=rho, phi=phi)
             drawSomething(c=c, loc=obj, w=w, h=h, x=x+cart.real, y=y+cart.imag, s=s, direct=direct-1, z=z)
-    try:
-        for obj in loc.core: # Draw cores of the object at the center
-            cart = cmath.rect(obj.posRho*s, obj.posPhi)
-            drawObject(c, x, y, getRenderRadius(obj,s), rgb=obj.color) # previously (limit/45)*numpy.cbrt(z)
-    except AttributeError:
-        drawObject(c, x, y, getRenderRadius(loc,s), rgb=loc.color) #colors[loc.composition.lower()])
-        if direct > 0:
-            c.create_text(x,y+15+getRenderRadius(loc,s), fill="white", text=loc.name, font=tkFont.Font(family="xos4 Terminus",size=18))
-        #print(f"Drawing {loc.name} at ({x},{y}) with a radius of {limit/60}")
-    #except:
+        else:
+            rho = obj.posRho.to(u.au)*s
+            phi = 0*u.radian
+            rad = obj.radius.to(u.au)*s
+            #print(f"'{obj.radius.value} TIMES {s.value} IS {rad}'")
+
+            #print(f"Width of {obj.name} is {obj.radius}; It extends from {obj.posRho-obj.radius} to {obj.posRho+obj.radius} away from the center of {obj.parent.name}, with an average distance of {obj.posRho}.\nAt a zoom level of {z} it should have an apparent width of {rad} and an apparent distance of {rho}.")
+
+            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad, rgb="#4d4020")
+            drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True)
+    if not NoCore:
+        try:
+            for obj in loc.core: # Draw cores of the object at the center
+                cart = cmath.rect(obj.posRho.to(u.au)*s, obj.posPhi)
+                drawObject(c, x, y, getRenderRadius(obj,s), rgb=obj.color)
+        except AttributeError:
+            drawObject(c, x, y, getRenderRadius(loc,s), rgb=loc.color) #colors[loc.composition.lower()])
+            if direct > 0:
+                c.create_text(x,y+15+getRenderRadius(loc,s), fill="white", text=loc.name, font=tkFont.Font(family="xos4 Terminus",size=18))
+            #print(f"Drawing {loc.name} at ({x},{y}) with a radius of {limit/60}")
+        #except:
         #pass
 
 
@@ -191,7 +212,7 @@ def drawGRID(img, inp, zoom, xoff, yoff, w, h, s, o1, g):
         zdisp = f"-"
         dis = "0.00 M"
         ndisp = f"VIEWING NONE"
-        tdisp = "-.---:--"
+        tdisp = "-.-.---:--"
         xoff = "-"
         yoff = "-"
         gdisp = "-"
@@ -207,11 +228,11 @@ def drawGRID(img, inp, zoom, xoff, yoff, w, h, s, o1, g):
             dis = str(dis.round(3)).upper()
         ndisp = f"VIEWING {inp.describe().upper()}: {inp.name.upper()}"
         try:
-            sep = 6
+            sep = 7
             tdisp = str(CLOCK_)
-            tdisp = tdisp.zfill(7)[0:-sep] + "." + tdisp[-sep:]
+            tdisp = tdisp.zfill(sep+1)[0:-sep] + "." + tdisp[-sep:]
         except:
-            tdisp = "-.---:--"
+            tdisp = "-.----:--"
         gdisp = g
 
     ## DARK GRID
@@ -322,4 +343,3 @@ def DrawMap(inp, zoom=1, xoff=0, yoff=0, w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79, d
     gimpRender("tkout.eps","sysdisplay")
 
 #print("Done")
-
