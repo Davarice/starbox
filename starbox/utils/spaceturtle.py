@@ -195,7 +195,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
             n1 = n0-1
             rr = 0
             for obj in loc.core:
-                rr += getRenderRadius(obj,s)
+                rr += getRenderRadius(obj,s)*n1
             i=0
             #print(rr)
             #drawOrbit(c=c, O=[x,y], rho=rr, phi=0)
