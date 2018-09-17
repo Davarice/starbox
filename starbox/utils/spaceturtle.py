@@ -1,9 +1,9 @@
 #print("    Loading SpaceTurtle...", end='')
 from astropy import units as u
 from tkinter import font as tkFont
-import os, tkinter, cmath, numpy
+import os, tkinter, math, cmath, numpy
 
-_targRes = 4
+_targRes = 2
 
 colors = {"rock":"#373","gas":"#bb4","ice":"#99f"}
 
@@ -191,9 +191,20 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
             drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True)
     if not NoCore:
         try:
+            n0 = len(loc.core)
+            n1 = n0-1
+            rr = 0
+            for obj in loc.core:
+                rr += getRenderRadius(obj,s)
+            i=0
+            #print(rr)
+            #drawOrbit(c=c, O=[x,y], rho=rr, phi=0)
             for obj in loc.core: # Draw cores of the object at the center
-                cart = cmath.rect(obj.posRho.to(u.au)*s, obj.posPhi)
-                drawObject(c, x, y, getRenderRadius(obj,s), rgb=obj.color)
+                i += 1
+                cart = cmath.rect(rr, (math.tau/n0)*i)
+                #cart = cmath.rect(obj.posRho.to(u.au)*s, obj.posPhi)
+                drawObject(c, x+cart.real, y+cart.imag, getRenderRadius(obj,s), rgb=obj.color)
+                c.create_text(x+cart.real,y+cart.imag+15+getRenderRadius(obj,s), fill="white", text=obj.name, font=tkFont.Font(family="xos4 Terminus",size=18))
         except AttributeError:
             drawObject(c, x, y, getRenderRadius(loc,s), rgb=loc.color) #colors[loc.composition.lower()])
             if direct > 0:

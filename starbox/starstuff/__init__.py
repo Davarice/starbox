@@ -62,8 +62,9 @@ def genSol():
 
 def genBC():
     bc = celestial.System("Beta Cygni")
-    s1 = celestial.Star("Albireo A", bc, isCore=True)
-    s2 = celestial.Star("Albireo B", bc, isCore=True)
+    s1 = celestial.Star("Albireo A", bc, radius=695700, isCore=True)
+    s2 = celestial.Star("Albireo B", bc, radius=995700, isCore=True)
+    s3 = celestial.Star("Albireo C", bc, radius=395700, isCore=True)
 
     g = celestial.GiantPlanet("Beta Cygni I", bc, orbit=4332.59, radius=69911)
     g.composition = "Ice"
