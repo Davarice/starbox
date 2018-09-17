@@ -306,7 +306,9 @@ Syntax: 'map [Z] [X] [Y]'
     def do_time(self, line):
         full = line.lower().split(" ")
         subc1 = full.pop(0)
-        if subc1 == "increment":
+        if subc1 == "":
+            print(CLOCK_)
+        elif subc1 == "increment":
             t = StringToTime(full)
             if input(f"Move time FORWARDS by {t}? New time will be {CLOCK_.toaster(plus=t)} (y/N): ").lower() == "y":
                 CLOCK_.tick(t)
@@ -325,7 +327,7 @@ Syntax: 'map [Z] [X] [Y]'
         #elif subc1 == "":
             #pass
         else:
-            print(f"Unknown subcommand {subc1}")
+            print(f"Unknown subcommand '{subc1}'")
 
     def complete_time(self, text, line, begidx, endidx):
         if line.strip().lower() == "time " + text:

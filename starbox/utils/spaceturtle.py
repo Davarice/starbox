@@ -223,7 +223,7 @@ def drawGRID(img, inp, zoom, xoff, yoff, w, h, s, o1, g):
         zdisp = f"-"
         dis = "0.00 M"
         ndisp = f"VIEWING NONE"
-        tdisp = "-.-.---:--"
+        tdisp = "-.----:--"
         xoff = "-"
         yoff = "-"
         gdisp = "-"
@@ -241,7 +241,6 @@ def drawGRID(img, inp, zoom, xoff, yoff, w, h, s, o1, g):
         try:
             sep = 7
             tdisp = str(CLOCK_)
-            tdisp = tdisp.zfill(sep+1)[0:-sep] + "." + tdisp[-sep:]
         except:
             tdisp = "-.----:--"
         gdisp = g

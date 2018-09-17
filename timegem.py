@@ -42,7 +42,12 @@ class Clock:
 
     def toaster(self, plus=0*u.minute):
         t = self.TIME + plus
-        return(f"{int(t.to(u.hour).value)}:{int(np.mod(t.value,60))}")
+        t0 = f"{int(t.to(u.hour).value)}:{int(np.mod(t.value,60))}"
+        if t0[-2] == ":":
+            t0 = t0 + "0"
+        t1 = t0.zfill(8)
+        t2 = t1[0:-7] + "." + t1[-7:]
+        return t2
 
     def __str__(self):
         return self.toaster()
