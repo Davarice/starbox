@@ -11,10 +11,10 @@ __all__ = ["Minor","DwarfPlanet","Planet","GiantPlanet","Star","BlackHole","Belt
 
 Class module for:
     Celestial bodies: Stars, black holes, planets, etc.
-    Locations on and around bodies: Settlements, elevators, stations, etc.
     Celestial structures composed of bodies: Star systems, sectors, galaxies, etc.
 
 
+### NOTE: This hierarchy may be entirely removed in favor of parent tracing. This is a bit restrictive. ###
 bodyRank: Hierarchy of mass of celestials
     0: Universal center (Great Attractor)
     1: Galactic center (SMBH, quasar)
@@ -106,8 +106,7 @@ class Body:
         #return self.mass
 
     def system(self):
-        """Try to find the top level object this is within.
-Basically just pass it upwards until meeting a System class, which will send itself all the way back down."""
+        """Try to find the top level object this is within.\nBasically just pass it upwards until meeting a System class, which will send itself all the way back down."""
         try:
             return self.parent.system()
         except AttributeError:
@@ -142,9 +141,7 @@ Basically just pass it upwards until meeting a System class, which will send its
         return oput
 
     def describe(self):
-        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.
-If the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.
-THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.\nIf the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.\nTHIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
         return self.bodySubtype.format(c=self.composition)
 
     def printData(self):
@@ -229,16 +226,14 @@ class Grouping:
         return mtotal
 
     def system(self):
-        """Try to find the top level object this is within.
-Basically just pass it upwards until meeting a System class, which will send itself all the way back down."""
+        """Try to find the top level object this is within.\nBasically just pass it upwards until meeting a System class, which will send itself all the way back down."""
         try:
             return self.parent.system()
         except AttributeError:
             return None
 
     def describe(self):
-        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Star System, or a Dwarf Galaxy, or an Asteroid Field, etc.
-Unlike for Bodies, the Grouping version of this may need explicit definition for every subclass."""
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Star System, or a Dwarf Galaxy, or an Asteroid Field, etc.\nUnlike for Bodies, the Grouping version of this may need explicit definition for every subclass."""
         return self.bodySubtype
 
     def printData(self):
@@ -381,9 +376,7 @@ class Star(Body):
             return None
 
     def describe(self):
-        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.
-If the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.
-THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
+        """Return a string of what this thing IS. A single noun with qualifiers as necessary. A Dwarf Planet, or a Gas Giant, or an Ice Giant, etc.\nIf the object requires a descriptor based on its composition, this can be supported by inserting {c} into its bodySubtype, as in the case of Gas/Ice Giants.\nTHIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition, such as Stars."""
         return self.bodySubtype
 
     def getSubs(self, par=True, nat=True, syn=True, incself=True):
@@ -414,14 +407,14 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
         return f"{self.name} (Class {self.stellarClass} {self.bodySubtype})"
 
 class BlackHole(Star):
-    """A Black Hole is a Star which has exhausted its fuel and cooled to the point that its radius contracts gravitationally to within its Schwarzschild radius.
-Escape velocity at its "surface", now called the event horizon, exceeds the speed of information."""
+    """A Black Hole is a Star which has exhausted its fuel and cooled to the point that its radius contracts gravitationally to within its Schwarzschild radius.\nEscape velocity at its "surface", now called the event horizon, exceeds the speed of information."""
     bodySubtype = "Black Hole"
 
 
 class Minor(Body):
-    """Minor: An object too small to be gravitationally spherical
-    Asteroids, meteors, comets, etc."""
+    """Minor: An object too small to be gravitationally spherical, but large enough to be cartographically noteworthy.
+    Asteroids, meteors, comets*, etc.\n\n
+    *TODO: Comets should at some point have PROPER (elliptical) orbits modelled, rather than a perfect circle determined by year length, so that they can serve as a sufficiently dynamic "special site" with a sense of in-world urgency. To make this work may also require a "head start" given as an offset from time zero."""
     massUnit = u.kg
     bodyType = "Minor"
 
@@ -450,10 +443,7 @@ class Minor(Body):
 ## Grouping-type
 
 class Galaxy(Grouping):
-    """A Galaxy is a grouping of stars, nebulae, dust, and other very massive objects, in orbit of a supermassive object, typically a supermassive black hole or a quasar.
-Like a System, a Galaxy is comprised of a core group and a group of orbitals, where the orbitals may be empty but the core cannot be.
-However, a Galaxy is so large in scale that while an incomplete System is a clerical error, an incomplete Galaxy more readily indicates the maintenance of sanity.
-A Galaxy is typically used simply to encompass multiple Systems in a semblance of an organized manner."""
+    """A Galaxy is a grouping of stars, nebulae, dust, and other very massive objects, in orbit of a supermassive object, typically a supermassive black hole or a quasar.\nLike a System, a Galaxy is comprised of a core group and a group of orbitals, where the orbitals may be empty but the core cannot be.\nHowever, a Galaxy is so large in scale that while an incomplete System is a clerical error, an incomplete Galaxy more readily indicates the maintenance of sanity.\nA Galaxy is typically used simply to encompass multiple Systems in a semblance of an organized manner."""
     bodyType = "Galaxy"
 
     def __init__(self, name, parent=None, # Identity information
@@ -520,9 +510,8 @@ A Galaxy is typically used simply to encompass multiple Systems in a semblance o
         return f"{self.name} ({self.bodySubtype})"
 
 class System(Grouping):
-    """System: Standard designation for a grouping of bodies, typically 1-3 stars or 2 planets
-Represents a significant gravitational point, and is composed of a core group and a set of orbitals
-    While unlikely (for stars), a system may have no orbitals. A system with no core objects, however, is a clerical error."""
+    """System: Standard designation for a grouping of Bodies, typically 1-3 Stars or 2 Planets.\nRepresents a significant gravitational point, and is composed of a Core group and a set of Orbitals.
+    While unlikely (for Star Systems), a System may have no Orbitals. A System with no Core objects, however, is a clerical error."""
     bodyType = "System"
 
     def __init__(self, name, parent=None, # Identity information
@@ -622,10 +611,10 @@ Represents a significant gravitational point, and is composed of a core group an
         return f"{self.name} ({self.bodySubtype})"
 
 class Belt(Grouping):
-    """Belt: A region of debris in orbit around a body, forming a ring
-    A belt has a Rho, but no Phi, because it exists at every value of Phi
-    Unlike a System, a belt represents a disparate cloud of abstract objects rather than a single point
-    As such, "orbitals" of a Belt represent objects found within the Belt, rather than in orbit of it"""
+    """Belt: A region of debris in orbit around a body, forming a ring.
+    A belt has a Rho, but no Phi, because it exists at every value of Phi.
+    Unlike a System, a belt represents a disparate cloud of abstract objects rather than a single point.
+    As such, "orbitals" of a Belt represent objects found within the Belt, rather than in orbit of it."""
     bodyType = "Belt"
 
     def __init__(self, name, parent=None, # Identity information
@@ -653,8 +642,9 @@ class Belt(Grouping):
         except AttributeError as e:
             pass
 
-        self.radius = radius*self.distUnit
         self.posRho = posRho*self.distUnit
+        self.radius = radius*self.distUnit
+        # This is a misnomer, to be technical and clear. The "radius" of a belt object is actually HALF OF ITS WIDTH; that is, the distance from the AVERAGE rho to either the minimum or maximum rho. The ACTUAL radius would probably be best represented by posRho+radius.
 
     @property
     def total(self):

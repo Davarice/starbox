@@ -6,7 +6,7 @@ An engine for obsessive compulsives with an inability not to overthink such as m
 # Goals:
 - [ ] A structured multi-level "board" around which "game pieces" can be moved
 - [ ] An interface for the addition and seamless integration of new locations and pieces into the board
-- [ ] A timekeeping function to increment and decrement time in the game world, and move orbiting pieces as appropriate
+- [x] A timekeeping function to increment and decrement time in the game world, and move orbiting pieces as appropriate
 - [ ] Potentially: A web application allowing players to explore locations they have seen
 
 # Program Structure:

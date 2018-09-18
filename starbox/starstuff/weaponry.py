@@ -4,8 +4,10 @@ from .celestial import u,c
 import random as r
 
 """
-### TODO ###
-Stub module for WEAPON classes
+/starbox/weaponry.py
+
+Class module for:
+    Guns and gun parts. Modular firearms.
 """
 #==============#
 ## COMPONENTS ##

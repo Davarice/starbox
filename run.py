@@ -27,18 +27,17 @@ starbox.starstuff.world.Site.Clock = CLOCK_
 MAIN USER INTERFACE MODULE
 
 ALL actions taken by users are controlled from this file
-Core commands, available in all contexts, are defined in the 'sbox' class
+Core commands, available in all contexts, are defined in the 'sbCore' class
 Subsequent subclasses are invoked for specific contexts (including the default context)
     sbMain: Default context; Navigate and view the world like a file browser
     sbWep: Weaponry context; Navigate, configure, and test small arms
     sbVeh: Vehicular context; Navigate, configure, and test vehicles
     sbEDIT: EDITOR context; Default context with ultimate power; ### DANGER ###
 
-Utility functions imminently below
+Global utility functions imminently below
 """
 
-space = starbox.starstuff.generate() # TODO: replace these lines with a load function
-#space = starbox.utils.stario.load("MilkyWay")
+space = starbox.starstuff.generate() # Initial State: Generate a Milky Way. LOAD command can replace it.
 space.Clock = CLOCK_
 CLOCK_.update(space)
 
@@ -265,8 +264,7 @@ class sbMain(sbNav):
     doShowTime=True
 
     def do_cd(self, line):
-        """Change Directory: Navigate the viewer to a numeric destination
-        (Numeric destinations can be found with 'ls')"""
+        """Change Directory: Navigate the viewer to a numeric destination\n        (Numeric destinations can be found with 'ls')"""
         try:
             self.loc = PathToLoc(self, line)
         except:
@@ -274,8 +272,7 @@ class sbMain(sbNav):
         self.refreshPrompt()
 
     def do_gset(self, line):
-        """Change the coordinate granularity of the MAP command
-        0 to reset to default"""
+        """Change the coordinate granularity of the MAP command\n        0 to reset to default"""
         try:
             starbox.utils.spaceturtle.setGranularity = int(line)
             print("Successfully adjusted")
@@ -286,14 +283,7 @@ class sbMain(sbNav):
         mproc(target=starbox.utils.spaceturtle.DrawNothing).start()
 
     def do_map(self, line):
-        """MAP: Print information about the selected location.
-Syntax: 'map [Z] [X] [Y]'
-    Z: Zoom coefficient; Increase the scale of objects on the display.
-        Default: 1
-    X: Horizontal offset; For panning the display East and West.
-        Default: 0
-    Y: Vertical offset; For panning the display South and North.
-        Default: 0"""
+        """MAP: Print information about the selected location.\nSyntax: 'map [Z] [X] [Y]'\n    Z: Zoom coefficient; Increase the scale of objects on the display.\n        Default: 1\n    X: Horizontal offset; For panning the display East and West.\n        Default: 0\n    Y: Vertical offset; For panning the display South and North.\n        Default: 0"""
         spline = line.split(" ") + ["","",""]
         #loc = PathToLoc(self, spline[0])
         loc = self.loc
@@ -339,10 +329,7 @@ Syntax: 'map [Z] [X] [Y]'
         return
 
     def do_info(self, line):
-        """INFO: Print information about the selected location.
-Syntax: 'info [L]'
-    L: The hierarchy path to examine.
-        Default: Current Location"""
+        """INFO: Print information about the selected location.\nSyntax: 'info [L]'\n    L: The hierarchy path to examine.\n        Default: Current Location"""
 
         #try:
             #loc = PathToLoc(self, line)
@@ -379,8 +366,7 @@ Syntax: 'info [L]'
 
 
     #def do_vehicles(self, line):
-        #"""Enter VEHICULAR mode:
-#View, configure, and test transportation vessels"""
+        #"""Enter VEHICULAR mode:\nView, configure, and test transportation vessels"""
         #print("Entering subcontext...")
         #sbWep(self.user).cmdloop()
         #print("Returning to standard context")
@@ -388,8 +374,7 @@ Syntax: 'info [L]'
 
 
     def do_weaponry(self, line):
-        """Enter WEAPONS mode:
-View, configure, and test small arms"""
+        """Enter WEAPONS mode:\nView, configure, and test small arms"""
         print("Entering subcontext...")
         sbWep(self.user).cmdloop()
         print("Returning to standard context")
@@ -397,8 +382,7 @@ View, configure, and test small arms"""
 
 
     def do_edit(self, line):
-        """Enter EDITOR mode:
-Full control over game world"""
+        """Enter EDITOR mode:\nFull control over game world"""
         if self.user != "root":
             print("\033[91mAccess Denied\033[0m")
             return
@@ -407,8 +391,7 @@ Full control over game world"""
         print("Returning to standard context")
 
     def do_su(self, line):
-        """Switch User
-For now this simply changes the username..."""
+        """Switch User:\nFor now this simply changes the username..."""
         print("Switching user")
         newu = line.split(" ")[0]
         self.__init__(newu)
