@@ -73,6 +73,7 @@ def GetRho(obj, par=None):
 
 class Body:
     """Superclass for most natural celestial objects"""
+    SUPERCLASS = "Body"
     distUnit = u.au
     minSize = 2 # When rendered, objects of this type will always be at least this radius
 
@@ -188,6 +189,7 @@ THIS METHOD SHOULD BE OVERWRITTEN for any classes that do not have a composition
 
 class Grouping:
     """Superclass for organizational entities such as star clusters and debris fields"""
+    SUPERCLASS = "Grouping"
     def __init__(self, name, # Identity information
                  ruler=None, space=None): # Social information
         self.name = name
@@ -612,7 +614,7 @@ Represents a significant gravitational point, and is composed of a core group an
             else:
                 self.orbitals.append(childNew)
             self.refreshType()
-        except AttributeError:
+        except AttributeError as e:
             pass
 
     def __str__(self):
@@ -630,15 +632,12 @@ class Belt(Grouping):
                  posRho=0, composition={"Rock":100.0}, # Physical information
                  ruler=None, space=None, radius=0.5): # Social information
         super().__init__(name=name, ruler=ruler)
+        print("New belt: " + name)
 
         self.parent = parent # OBJ: Object around which this body orbits
         self.comptable = composition
 
         self.bodyRank = 1
-        try:
-            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
-        except AttributeError:
-            pass
 
         self.distUnit = u.au
         if self.parent.bodyType == "System":
@@ -648,6 +647,11 @@ class Belt(Grouping):
             self.distUnit = u.km
         else:
             self.bodySubtype = "Cloud"
+
+        try:
+            self.parent.subAssign(self) # If the parent body has a specific method to integrate me, use it
+        except AttributeError as e:
+            pass
 
         self.radius = radius*self.distUnit
         self.posRho = posRho*self.distUnit

@@ -120,11 +120,11 @@ class sbCORE(cmd.Cmd):
     host = "StarBox.core"
     intro = "StarBox fully initialized. For help: 'help' or '?'"
     farewell = "StarBox powering down...\nRemoving all sapients...\nVirtual universe purged.\nInterface closing."
-    root = space
     promptColor = "\033[95m"
 
     def __init__(self, user="User"):
         super().__init__()
+        self.root = space
         self.user = user
         self.doShowTime = False
         try:
@@ -358,6 +358,7 @@ Syntax: 'info [L]'
             imp = starbox.utils.stario.load(line)
             CLOCK_.TIME=imp.Clock.TIME
             CLOCK_.update(imp)
+            global space
             space = imp
             self.root = space
             self.loc = space
@@ -402,7 +403,7 @@ Full control over game world"""
             print("\033[91mAccess Denied\033[0m")
             return
         print("Entering subcontext...")
-        sbEDIT(self.user).cmdloop()
+        sbEDIT(self.user,self).cmdloop()
         print("Returning to standard context")
 
     def do_su(self, line):
@@ -431,14 +432,21 @@ class sbEDIT(sbMain):
     promptColor = "\033[31m" # RED prompt for VERY DANGEROUS mode
     farewell = "EDITOR mode closing..."
 
-    def __init__(self, user="ROOT"):
+    def __init__(self, user="ROOT", src=None):
         super().__init__(user=user)
         self.doShowTime = True
         self.showTime()
+        self.src=src
         #del self.do_vehicles
         #del self.do_vh
         #del self.do_weaponry
         #del self.do_wp
+
+    def AscertainCoreStatus(self, name, parent):
+        if parent.SUPERCLASS == "Grouping" and parent.bodyType != "Belt" and input(f"Is {name} a CORE member of {parent.name}? (y/N) ").lower() == "y":
+            return True
+        else:
+            return False
 
     def do_save(self, line):
         """Save to disk: Serialize the current universe and save it as a file."""
@@ -452,8 +460,58 @@ class sbEDIT(sbMain):
         else:
             print("Saved world to disk.")
 
-    def do_new(self, name):
-        pass
+    def do_delete(self, line):
+        if input(f"This will PERMANENTLY DELETE {self.loc}.\nContinue? (y/N) ").lower() == "y":
+            doomed = self.loc
+            self.loc = self.loc.parent
+            try:
+                self.loc.core.remove(doomed)
+            except:
+                pass
+            try:
+                self.loc.orbitals.remove(doomed)
+            except:
+                pass
+
+    def do_createGalaxy(self, line):
+        if input("THIS WILL DISCARD THE CURRENT GALAXY. SAVE IT FIRST OR SUFFER.\nContinue? (y/N) ").lower() == "y":
+            n = input("Type the name of the new Galaxy: ")
+            t = input("Provide a starting time: ")
+            if not t.isnumeric():
+                t = 0
+            c = timegem.Clock(int(t))
+            g = starbox.starstuff.celestial.Galaxy(n, time=c)
+            global CLOCK_
+            CLOCK_ = c
+            global space
+            space = g
+            self.root = space
+            self.loc = space
+            self.src.root = space
+            self.src.loc = space
+            print(f"New galaxy '{n}' successfully defined")
+
+    def do_createSystem(self, line):
+        self.loc = starbox.starstuff.celestial.System(input("Creating new System. Enter name: "), self.loc)
+        print("System defined.")
+
+    def do_createStar(self, line):
+        n = input("Enter a name for this new star: ")
+        mass = float(input(f"What is the mass of {n} in Solar Masses? "))
+        self.loc = starbox.starstuff.celestial.Star(name=n,parent=self.loc,isCore=self.AscertainCoreStatus(n,self.loc))
+        print(f"Stellar mapping completed. {n} is now on all official star charts.")
+
+    def do_createPlanet(self, line):
+        n = input("Enter a name for this new world: ")
+        if input(f"Is {n} a Dwarf Planet? (y/N) ") == "y":
+            planet = starbox.starstuff.celestial.DwarfPlanet
+        elif input(f"Is {n} a Gas/Ice Giant? (y/N) ") == "y":
+            planet = starbox.starstuff.celestial.GiantPlanet
+        else:
+            planet = starbox.starstuff.celestial.Planet
+        mass = float(input(f"What is the mass of {n} in {planet.massUnit}? "))
+        self.loc = planet(name=n,parent=self.loc,isCore=self.AscertainCoreStatus(n,self.loc))
+        print(f"New World Protocol completed. {n} is now on all official star charts.")
 
     # This power-class builds atop all the cool stuff in the sbMain, but should still exit on ctrl-D.
     default = sbCORE.default # So we grab it from the sbCORE.

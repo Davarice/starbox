@@ -162,10 +162,10 @@ def drawObject(c, x, y, r, rgb="#888"):
     y1 = y + r
     c.create_oval(x0, y0, x1, y1, outline=rgb, fill=rgb)
 
-def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1):
+def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1, stip=""):
     [x0,y0] = [O[0]-rho,O[1]-rho]
     [x1,y1] = [O[0]+rho,O[1]+rho]
-    c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, start=-phi.to(u.degree).value, extent=359.999999)
+    c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, outlinestipple=stip, start=-phi.to(u.degree).value, extent=359.999999)
 
 
 def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False):
@@ -187,7 +187,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
 
             #print(f"Width of {obj.name} is {obj.radius}; It extends from {obj.posRho-obj.radius} to {obj.posRho+obj.radius} away from the center of {obj.parent.name}, with an average distance of {obj.posRho}.\nAt a zoom level of {z} it should have an apparent width of {rad} and an apparent distance of {rho}.")
 
-            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad, rgb="#4d4020")
+            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad*2, stip="gray12", rgb="#4d4020")
             drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True)
     if not NoCore:
         try:
