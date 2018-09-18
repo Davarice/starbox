@@ -23,3 +23,16 @@ A set of functions to manipulate elements of the game board such as creation of 
 
 ### WebApp:
 A CLI tool to navigate the game board and render simplistic star system maps
+
+# Graphics:
+StarBox uses TKInter to render rudimentary graphical representations of locations in space, which are then passed through the GIMP CLI with a filter method of my own design (with a few numbers from the internet) to simulate a composite video signal feeding to a CRT display. The resulting image can be edited into photos, displayed on prop CRTs, or simply posted in a chat room as a way to set an aesthetic.
+
+The possible eventual StarBox web application will display this image on a simulated screen next to the command line.
+
+![A full-system view](screenshots/full-system.png)
+
+![The inner solar system](screenshots/inner-system.png)
+
+![Earth and Luna, focused from system view](screenshots/earth-from-sol.png)
+
+![A trinary star system](screenshots/trinary-stars.png)

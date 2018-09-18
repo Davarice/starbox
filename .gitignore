@@ -12,7 +12,14 @@
 !milkyway.pkl
 # ...EXCEPT the pickle of the test galaxy
 
+*.png
+# Ignore PNG images
 
+!screenshots/*.png
+# ...EXCEPT screenshots
+
+
+### Default:
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
