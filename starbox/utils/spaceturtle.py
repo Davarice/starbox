@@ -61,7 +61,7 @@ gconv = [0,0,0,0,0,
 
 # The operations which are done to a starmap in GIMP. Note that the format is Python 2.7.
                   # Source block
-GimpOperations = ['img = pdb.gimp_file_load("{i}", "{i}")',
+GimpOperations = ['img = pdb.gimp_file_load("data/graphics/{i}", "data/graphics/{i}")',
                   'drw = img.active_drawable',
                   'pdb.gimp_layer_add_alpha(drw)',
 
@@ -95,7 +95,7 @@ GimpOperations = ['img = pdb.gimp_file_load("{i}", "{i}")',
                   #'pdb.plug_in_lens_distortion(img, drw, 0, 0, 60, 6, 14, -8)', # More dramatic bend
 
                   # Export "block"
-                  'pdb.file_png_save(img, drw, "{o}.png", "{o}.png", 0, 9, 0, 0, 0, 0, 0)']
+                  'pdb.file_png_save(img, drw, "data/graphics/{o}.png", "data/graphics/{o}.png", 0, 9, 0, 0, 0, 0, 0)']
 
 def gimpRender(i,o,w=_OUTPUT[0],h=_OUTPUT[1]):
     gstring = "gimp -idf --batch-interpreter=python-fu-eval -b '"
@@ -306,7 +306,7 @@ def DrawNothing(w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79):
 
     img.lower(bg)
 
-    img.postscript(file="loadout.eps",colormode="color",width=w+2,height=h+2)
+    img.postscript(file="data/graphics/loadout.eps",colormode="color",width=w+2,height=h+2)
     tki.destroy()
     del tki
 
@@ -351,7 +351,7 @@ def DrawMap(inp, zoom=1, xoff=0, yoff=0, w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79, d
 
     img.lower(bg)
 
-    img.postscript(file="tkout.eps",colormode="color",width=w+2,height=h+2)
+    img.postscript(file="data/graphics/tkout.eps",colormode="color",width=w+2,height=h+2)
     tki.destroy()
     del tki
 

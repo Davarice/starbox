@@ -2,8 +2,7 @@
 import pickle,sys
 
 """
-### TODO ###
-Stub module for loading and saving worlds as objects
+Save and load objects, normally galaxies, as serialized files.
 """
 
 def getfile(inp):
@@ -13,11 +12,11 @@ def getfile(inp):
 
 
 def load(name):
-    return pickle.load(open(f"data/{getfile(name)}","rb"))
+    return pickle.load(open(f"data/saves/{getfile(name)}","rb"))
 
 
 def save(obj):
-    pickle.dump(obj, open(f"data/{getfile(obj.name)}","wb"))
+    pickle.dump(obj, open(f"data/saves/{getfile(obj.name)}","wb"))
 
 
 
