@@ -168,7 +168,7 @@ def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1, stip=""):
     c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, outlinestipple=stip, start=-phi.to(u.degree).value, extent=359.999999)
 
 
-def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False):
+def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False, oCol=colorOrbit):
     for obj in loc.orbitals:
         if obj.bodyType != "Belt":
             rho = obj.posRho.to(u.au)*s
@@ -177,7 +177,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
 
             if -10 < x+cart.real < w+10 and -10 < y+cart.imag < h+10 and rho > 30:
                 c.create_line(x, y, x+cart.real, y+cart.imag, fill=colorParentTrace)
-            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi)
+            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, rgb=oCol)
             drawSomething(c=c, loc=obj, w=w, h=h, x=x+cart.real, y=y+cart.imag, s=s, direct=direct-1, z=z)
         else:
             rho = obj.posRho.to(u.au)*s
@@ -188,7 +188,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
             #print(f"Width of {obj.name} is {obj.radius}; It extends from {obj.posRho-obj.radius} to {obj.posRho+obj.radius} away from the center of {obj.parent.name}, with an average distance of {obj.posRho}.\nAt a zoom level of {z} it should have an apparent width of {rad} and an apparent distance of {rho}.")
 
             drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad*2, stip="gray12", rgb="#4d4020")
-            drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True)
+            drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True, oCol="#663")
     if not NoCore:
         try:
             n0 = len(loc.core)
