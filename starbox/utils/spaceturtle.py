@@ -162,10 +162,12 @@ def drawObject(c, x, y, r, rgb="#888"):
     y1 = y + r
     c.create_oval(x0, y0, x1, y1, outline=rgb, fill=rgb)
 
-def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1, stip=""):
+def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1, low=False):
     [x0,y0] = [O[0]-rho,O[1]-rho]
     [x1,y1] = [O[0]+rho,O[1]+rho]
-    c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, outlinestipple=stip, start=-phi.to(u.degree).value, extent=359.999999)
+    o = c.create_arc(x0, y0, x1, y1, style="arc", outline=rgb, width=width, start=-phi.to(u.degree).value, extent=359.999999)
+    if low:
+        c.lower(o)
 
 
 def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False, oCol=colorOrbit):
@@ -187,7 +189,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
 
             #print(f"Width of {obj.name} is {obj.radius}; It extends from {obj.posRho-obj.radius} to {obj.posRho+obj.radius} away from the center of {obj.parent.name}, with an average distance of {obj.posRho}.\nAt a zoom level of {z} it should have an apparent width of {rad} and an apparent distance of {rho}.")
 
-            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad*2, stip="gray12", rgb="#4d4020")
+            drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, width=rad*2, low=True, rgb="#2d2820")
             drawSomething(c=c, loc=obj, w=w, h=h, x=x, y=y, s=s, direct=direct, z=z, NoCore=True, oCol="#663")
     if not NoCore:
         try:
@@ -293,7 +295,7 @@ def DrawNothing(w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79):
 
     tki = tkinter.Tk()
     img = tkinter.Canvas(tki, bg=colorScreen, width=w+2, height=h+2)
-    img.create_rectangle(-w, -h, 2*w, 2*h, outline=colorScreen, fill=colorScreen)
+    bg = img.create_rectangle(-w, -h, 2*w, 2*h, outline=colorScreen, fill=colorScreen)
 
     drawGRID(img, None, zoom=1, xoff=0, yoff=0, w=w, h=h, s=None, o1=10, g=navGranularity)
 
@@ -301,6 +303,8 @@ def DrawNothing(w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79):
     #drawDot(img, x=w/2+1, y=h/2+1, r=1, rgb="#ffffff")
     img.create_line(w/2+1,h/2-4, w/2+1, h/2+7, fill="#FFFFFF")
     img.create_line(w/2-4,h/2+1, w/2+7, h/2+1, fill="#FFFFFF")
+
+    img.lower(bg)
 
     img.postscript(file="loadout.eps",colormode="color",width=w+2,height=h+2)
     tki.destroy()
@@ -315,7 +319,7 @@ def DrawMap(inp, zoom=1, xoff=0, yoff=0, w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79, d
 
     tki = tkinter.Tk()
     img = tkinter.Canvas(tki, bg=colorScreen, width=w+2, height=h+2)
-    img.create_rectangle(-w, -h, 2*w, 2*h, outline=colorScreen, fill=colorScreen)
+    bg = img.create_rectangle(-w, -h, 2*w, 2*h, outline=colorScreen, fill=colorScreen)
 
     if zoom < 1:
         zoom = 1
@@ -344,6 +348,8 @@ def DrawMap(inp, zoom=1, xoff=0, yoff=0, w=_OUTPUT[0]/0.79, h=_OUTPUT[1]/0.79, d
     #drawDot(img, x=w/2+1, y=h/2+1, r=1, rgb="#ffffff")
     img.create_line(w/2+1,h/2-4, w/2+1, h/2+7, fill="#FFFFFF")
     img.create_line(w/2-4,h/2+1, w/2+7, h/2+1, fill="#FFFFFF")
+
+    img.lower(bg)
 
     img.postscript(file="tkout.eps",colormode="color",width=w+2,height=h+2)
     tki.destroy()
