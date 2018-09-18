@@ -170,17 +170,19 @@ def drawOrbit(c, O, rho, phi, rgb=colorOrbit, width=1, low=False):
         c.lower(o)
 
 
-def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False, oCol=colorOrbit):
+def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=False, NoName=False, oCol=colorOrbit):
     for obj in loc.orbitals:
         if obj.bodyType != "Belt":
+            nn = True
             rho = obj.posRho.to(u.au)*s
             phi = obj.posPhi
             cart = cmath.rect(rho, phi.value) # Complex number representing the X and Y of OBJ relative to LOC
 
-            if -10 < x+cart.real < w+10 and -10 < y+cart.imag < h+10 and rho > 30:
+            if -10 < x+cart.real < w+10 and -10 < y+cart.imag < h+10 and rho > 50:
                 c.create_line(x, y, x+cart.real, y+cart.imag, fill=colorParentTrace)
+                nn = False
             drawOrbit(c=c, O=[x,y], rho=rho, phi=phi, rgb=oCol)
-            drawSomething(c=c, loc=obj, w=w, h=h, x=x+cart.real, y=y+cart.imag, s=s, direct=direct-1, z=z)
+            drawSomething(c=c, loc=obj, w=w, h=h, x=x+cart.real, y=y+cart.imag, s=s, direct=direct-1, z=z, NoName=nn)
         else:
             rho = obj.posRho.to(u.au)*s
             phi = 0*u.radian
@@ -197,7 +199,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
             n1 = n0-1
             rr = 0
             for obj in loc.core:
-                rr += getRenderRadius(obj,s)*n1
+                rr += getRenderRadius(obj,s)*(n1/2)
             i=0
             #print(rr)
             #drawOrbit(c=c, O=[x,y], rho=rr, phi=0)
@@ -209,7 +211,7 @@ def drawSomething(c, loc, w, h, x, y, s, color="#fe4", direct=2, z=1, NoCore=Fal
                 c.create_text(x+cart.real,y+cart.imag+15+getRenderRadius(obj,s), fill="white", text=obj.name, font=tkFont.Font(family="xos4 Terminus",size=18))
         except AttributeError:
             drawObject(c, x, y, getRenderRadius(loc,s), rgb=loc.color) #colors[loc.composition.lower()])
-            if direct > 0:
+            if NoName == False: #direct > 0:
                 c.create_text(x,y+15+getRenderRadius(loc,s), fill="white", text=loc.name, font=tkFont.Font(family="xos4 Terminus",size=18))
             #print(f"Drawing {loc.name} at ({x},{y}) with a radius of {limit/60}")
         #except:
