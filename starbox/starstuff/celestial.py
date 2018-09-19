@@ -101,10 +101,6 @@ class Body:
         self.sites = [] # Locations on the surface of the world, synthetic or geographical
         self.nations = [] # Entities controlling territory on this world (typically subservient to the ruler)
 
-    #def getmass(self):
-        #"""Just in case this is ever called here accidentally"""
-        #return self.mass
-
     def system(self):
         """Try to find the top level object this is within.\nBasically just pass it upwards until meeting a System class, which will send itself all the way back down."""
         try:
@@ -125,6 +121,27 @@ class Body:
         if syn:
             lout = lout + lsyn
         return lout
+
+    # FUTURE tagging scheme, also returns relation string
+    #def getSubs(self, par=True, nat=True, syn=True, core=False, incself=False):
+        #lcor = self.core or []
+        #lnat = self.orbitals or []
+        #lsyn = self.satellites or []
+        #lout = []
+        #if par:
+            #lout.append((self.parent, "[[PRNT]]"))
+        #if incself:
+            #lout.append((self, "[[SELF]]"))
+        #if core:
+            #for obj in lcor:
+                #lout.append((obj, "[[CORE]]"))
+        #if nat:
+            #for obj in lnat:
+                #lout.append((obj, "[[ORBT]]"))
+        #if syn:
+            #for obj in lsyn:
+                #lout.append((obj, "[[SATL]]"))
+        #return lout
 
     def subList(self):
         oput = "Current Location: {} ({})".format(self.name, self.bodySubtype)
@@ -297,8 +314,7 @@ class Grouping:
 ## Body-type
 
 class Planet(Body):
-    """Planet: Most ubiquitous celestial body.
-A planet is massive enough to be rounded by its own gravity, is not massive enough to cause thermonuclear fusion, and has cleared its neighbouring region of planetesimals. (from Wikipedia)"""
+    """Planet: Most ubiquitous celestial body.\nA planet is massive enough to be rounded by its own gravity, is not massive enough to cause thermonuclear fusion, and has cleared its neighbouring region of planetesimals. (from Wikipedia)"""
     bodyType = "Planet"
     bodySubtype = "Planet"
     massUnit = M_e
@@ -562,25 +578,31 @@ class System(Grouping):
         stars = 0
         others = 0
         planets = 0
+        systems = 0
         for obj in self.core:
             if "Star" in obj.bodySubtype:
                 stars += 1
             elif "Planet" in obj.bodyType:
                 planets += 1
+            elif "Star System" in obj.bodySubtype:
+                systems += 1
             else:
                 others += 1
 
-        if others == 0 and planets == 0: # All items are stars
-            ret = "Star " + ret
-        if others == 0 and stars == 0: # All items are planets
-            ret = "Planetary " + ret
+        if systems > 0:
+            ret = "Sector"
+        else:
+            if others == 0 and planets == 0: # All items are stars
+                ret = "Star " + ret
+            elif others == 0 and stars == 0: # All items are planets
+                ret = "Planetary " + ret
 
-        if size == 2:
-            ret = "Binary " + ret
-        if size == 3:
-            ret = "Trinary " + ret
-        if size > 3:
-            ret = "Compound " + ret
+            if size == 2:
+                ret = "Binary " + ret
+            if size == 3:
+                ret = "Trinary " + ret
+            if size > 3:
+                ret = "Compound " + ret
 
         self.bodySubtype = ret
 
@@ -621,7 +643,6 @@ class Belt(Grouping):
                  posRho=0, composition={"Rock":100.0}, # Physical information
                  ruler=None, space=None, radius=0.5): # Social information
         super().__init__(name=name, ruler=ruler)
-        print("New belt: " + name)
 
         self.parent = parent # OBJ: Object around which this body orbits
         self.comptable = composition

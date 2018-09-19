@@ -3,7 +3,7 @@ from astropy import units as u
 from tkinter import font as tkFont
 import os, tkinter, math, cmath, numpy
 
-_targRes = 2
+_targRes = 1
 
 colors = {"rock":"#373","gas":"#bb4","ice":"#99f"}
 
@@ -24,12 +24,12 @@ Rendering module for drawing starmaps
 """
 
 # Common CRT display resolutions
-RESOLUTIONS = [[640,480], # 1
-               [800,600], # 2
-               [1024,768], # 3
-               [1200,900], # 4
-               [1280,960], # 5
-               [1600,1200]] # 6
+RESOLUTIONS = [[640,480], # 0
+               [800,600], # 1
+               [1024,768], # 2
+               [1200,900], # 3
+               [1280,960], # 4
+               [1600,1200]] # 5
 
 # Output resolution (The resolution of CRT display to be simulated)
 _OUTPUT = RESOLUTIONS[_targRes]
