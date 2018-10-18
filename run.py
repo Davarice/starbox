@@ -45,6 +45,9 @@ CLOCK_.update(space)
 
 _PromptString = "{c}{u}@{h}\033[0m:\033[94m{p}\033[0m$ "
 
+def termOut(txt):
+    print(txt)
+
 def StringToTime(sl):
     s = ""
     for w in sl:
@@ -505,12 +508,33 @@ class sbEDIT(sbMain):
 
 sbterm = sbMain()
 
+def CmdToConsole(con,term):
+    ip = con.cmdline.text()
+    con.textBrowser.append(ip)
+    con.cmdline.clear()
+    term.onecmd(ip)
+    pass
+
+def ConsoleToCmd():
+    pass
+
 def sbrun():
     try:
         sbMain().cmdloop()
     except KeyboardInterrupt:
         print("\nStarBox Vaporized")
         pass
+
+con,app = starbox.utils.console.STARCON()
+def sbcon():
+    con.cmdline.returnPressed.connect(lambda: CmdToConsole(con, sbterm))
+    sys.exit(app.exec_())
+
+    def stolen(txt):
+        con.textBrowser.append(txt)
+
+    global termOut
+    termOut = stolen
 
 if __name__ == "__main__":
     sbrun()

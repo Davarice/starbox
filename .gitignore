@@ -18,6 +18,8 @@
 !screenshots/*.png
 # ...EXCEPT screenshots
 
+data/
+.idea/
 
 ### Default:
 

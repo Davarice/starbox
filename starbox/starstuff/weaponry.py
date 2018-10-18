@@ -12,6 +12,8 @@ Class module for:
 #==============#
 ## COMPONENTS ##
 #==============#
+
+
 class Component:
     def __init__(self, qual=0, damage=0):
         self.level = qual
