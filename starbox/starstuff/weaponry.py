@@ -1,37 +1,60 @@
 #print("    Loading Small Arms...", end='')
-import collections
-from .celestial import u,c
-import random as r
-
 """
 /starbox/weaponry.py
 
 Class module for:
     Guns and gun parts. Modular firearms.
+
+By @Davarice
 """
+
+import collections
+from .celestial import u,c
+import random as r
+
 #==============#
 ## COMPONENTS ##
 #==============#
 
+class GunJam(Exception):
+    """Firearm error"""
+    pass
 
 class Component:
     def __init__(self, qual=0, damage=0):
         self.level = qual
         self.dmg = damage
 
-    def damage(n=1):
+    def damage(self, n=1):
         self.dmg += n
 
 
 
 
 ## PLASMA COMPONENTS ##
+class RoundPlasma(Component):
+    dDiceMap = ["d6", "d8", "2d6", "2d8", "2d12"]
+    dTypeMap = ["fire", "fire", "necrotic", "necrotic", "necrotic"]
+    dColrMap = ["red", "orange", "green", "blue", "violet"]
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.Loaded = True
+        self.DamageDice = self.dDiceMap[self.level]
+        self.DamageType = self.dTypeMap[self.level]
+        self.FXColor = self.dColrMap[self.level]
+
+    def describe(self):
+        return {True:f"gas capsule filled with {self.FXColor} vapor",
+                False:"discharged gas capsule"}[self.Loaded]
+
+
 class Cylinder(Component):
     slot = "" # The attribute that determines what "slot" of a weapon this component occupies
     # (This one is blank because this component has specific variants for pistols vs rifles)
 
     def __init__(self, qual=0, damage=0):
-        super().__init__(qual,damage)
+        super().__init__(qual, damage)
         self.contents = []
 
     def capacity(self):
@@ -47,7 +70,7 @@ class Cylinder(Component):
             self.contents.append(self.contents.pop(0)) # ...Move the first item to the end
         print("The cylinder spins...")
 
-    def load(self,ammo):
+    def load(self, ammo):
         self.fillWithAir()
         if ammo in self.contents: # If this ever occurs naturally, something has gone horribly wrong
             print("The cylinder already contains that round...")
@@ -67,7 +90,6 @@ class CylinderRifle(Cylinder): # Subclass variant used by rifles
     qualCap = [8,16,20] # The list of ammunition capacities at various quality levels
 
 
-
 class Pressurizer(Component):
     slot = "pressurizer" # The attribute that determines what "slot" of a weapon this component occupies
 
@@ -75,13 +97,11 @@ class Pressurizer(Component):
         super().__init__(qual,damage)
 
 
-
 class Ignition(Component):
     slot = "ignition" # The attribute that determines what "slot" of a weapon this component occupies
 
     def __init__(self, qual=0, damage=0):
         super().__init__(qual,damage)
-
 
 
 class Containment(Component):
@@ -103,26 +123,32 @@ class Containment(Component):
 ## GUNS ##
 #========#
 class Firearm:
+    partsNeeded = []
+    gunClass = "generic"
+    gunType = 0
+
     def __init__(self):
         self.parts = {}
+
+    def install(self, comp):
+        self.parts[comp.slot] = comp
 
     def isComplete(self):
         for need in self.partsNeeded:
             try:
                 if self.parts[need] == None or self.parts[need].slot != need:
                     return False
-            except AttributeError:
+            except:
                 return False
         return True
 
-class gunPlasma(Firearm):
-    def install(self, comp):
-        self.parts[comp.slot] = comp
+
+class GunPlasma(Firearm):
+    partsNeeded = ["cylinder","pressurizer","ignition","containment",
+                   "grip","barrel","receiver"]
 
     def __init__(self,inputGun={},inputParts=[]):
         super().__init__()
-        self.partsNeeded = ["cylinder","pressurizer","ignition","containment",
-                            "grip","barrel","receiver"]
         for slot in self.partsNeeded: # Initialize an empty weapon frame
             self.parts.update({slot:None})
         self.parts.update(inputGun) # If an existing gun has been supplied, put all its parts onto this one
